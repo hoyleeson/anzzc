@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.68])
 
-AC_INIT(hoylibc, 1.0.00, hoyleeson@gmail.com)
+AC_INIT(anzzc, 1.0.00, hoyleeson@gmail.com)
 
 AM_INIT_AUTOMAKE
 
@@ -106,7 +106,7 @@ AC_SUBST(GLOBAL_CFLAGS)
 
 AC_CONFIG_FILES([Makefile
 				 src/Makefile
-				 include/Makefile include/common/Makefile
+				 include/Makefile
 				 configs/Makefile
 				 tests/Makefile tests/test_case/Makefile
 				 docs/Makefile])

@@ -21,13 +21,14 @@
 #define CFG_MAXARGS     (16)
 #define CMD_MAX_LEN     (1024)
 
+#define CONSOLE_MARK 	"anzz>"
 
 static int read_cmds(char* cmd)
 {
     char buf[CMD_MAX_LEN], *p;
     int len = 0;
 
-    printf("hoy>");
+    printf("%s", CONSOLE_MARK);
 
     if(fgets(buf, sizeof(buf), stdin)) {
         p = strchr(buf, '\n');
