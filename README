@@ -1,1 +1,28 @@
 anzzc
+
+What is anzzc?
+The anzzc is C Library project provides the algorithms and utils libraries for the Linux systems.
+
+Problems, bugs, questions, desirable enhancements, etc. should be sent to the address "hoyleeson@gmail.com". 
+
+In the simplest case the program uses the anzzc provided by the distribution, but you aren't limited to this. Perhaps you want to test a new feature, or a developer has asked if you can reproduce the bug with the latest anzzc.
+
+Whatever your needs are, these intructions are designed to guide you through the process of building and using upstream anzzc.
+
+
+Getting started building anzzc
+
+Releases are available by source branch checkout via git.
+
+Checkout the latest anzzc stable release:
+
+$ git clone https://github.com/hoyleeson/anzzc.git
+$ cd anzzc
+
+$ cd script/
+$ ./autogen.sh
+$ ./linux_build.sh
+
+The libanzzc.so will found in _install.
+
+Enjoy it!
