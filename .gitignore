@@ -31,3 +31,12 @@
 # Debug files
 *.dSYM/
 *.su
+
+# PROJ file
+*.PROJ/
+
+# Other file
+*.in
+*.swp
+_install/
+
