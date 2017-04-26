@@ -20,51 +20,45 @@
 extern "C" {
 #endif
 
-
 #ifndef LOG_TAG
 #define LOG_TAG 	"anzzc"
 #endif
 
-#ifndef ANDROID
+#define LOG_FILE 		"anzzc.log"
 
-#define LOG_FATAL 		(0)
-#define LOG_ERROR 		(1)
-#define LOG_WARNING 	(2)
-#define LOG_INFO 		(3)
-#define LOG_DEBUG 		(4)
-#define LOG_VERBOSE 	(5)
-#define LOG_LEVEL_MAX  	LOG_VERBOSE
+#define DEFAULT_LOG_LEVEL 		LOG_INFO
 
-#define LOG_DEFAULT_LEVEL 	LOG_VERBOSE
+enum logger_mode {
+	LOG_MODE_QUIET,
+	LOG_MODE_STDERR,
+	LOG_MODE_FILE,
+	LOG_MODE_CLOUD,
+#ifdef ANDROID
+	LOG_MODE_ANDROID,
+#endif
+	LOG_MODE_MAX,
+};
 
-#define LOG_BUF_SIZE 	(1024)
+enum logger_level {
+	LOG_FATAL,
+	LOG_ERROR,
+	LOG_WARNING,
+	LOG_INFO,
+	LOG_DEBUG,
+	LOG_VERBOSE,
+	LOG_LEVEL_MAX,
+};
 
-void log_printf(int level, const char *tag, const char *fmt, ...);
+#define LOG_DEFAULT_LEVEL 	LOG_INFO
+#define LOG_BUF_SIZE 		(4096)
 
-#define LOG_PRINT(l, ...) 	log_printf(l, LOG_TAG, __VA_ARGS__)
-
-#define LOGV(...)   LOG_PRINT(LOG_VERBOSE, __VA_ARGS__)
-#define LOGD(...)   LOG_PRINT(LOG_DEBUG, __VA_ARGS__)
-#define LOGI(...)   LOG_PRINT(LOG_INFO, __VA_ARGS__)
-#define LOGW(...)   LOG_PRINT(LOG_WARNING, __VA_ARGS__)
-#define LOGE(...)   LOG_PRINT(LOG_ERROR, __VA_ARGS__)
+#define LOGV(...)   log_print(LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
+#define LOGD(...)   log_print(LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define LOGI(...)   log_print(LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOGW(...)   log_print(LOG_WARNING, LOG_TAG, __VA_ARGS__)
+#define LOGE(...)   log_print(LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 #define logprint(...)      printf(__VA_ARGS__)
-
-#else /* #else ANDROID */
-
-#include "jni.h"
-#include <android/log.h>
-
-#define LOGV(...)   __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
-#define LOGD(...)   __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define LOGI(...)   __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define LOGW(...)   __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
-#define LOGE(...)   __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-
-#define logprint(...)      LOGI(__VA_ARGS__)
-
-#endif  /* #endif ANDROID */
 
 
 #ifdef VDEBUG
@@ -118,7 +112,10 @@ static inline void dump_data(const char *desc, void *data, int len)
 
 void dump_stack(void);
 
-void log_init(int level);
+void log_print(int level, const char *tag, const char *fmt, ...);
+void log_init(enum logger_mode mode, enum logger_level level);
+void log_release(void);
+
 
 #ifdef __cplusplus
 }
