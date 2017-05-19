@@ -33,6 +33,7 @@ enum logger_mode {
 	LOG_MODE_STDERR,
 	LOG_MODE_FILE,
 	LOG_MODE_CLOUD,
+	LOG_MODE_CALLBACK, 
 #ifdef ANDROID
 	LOG_MODE_ANDROID,
 #endif
@@ -111,6 +112,11 @@ static inline void dump_data(const char *desc, void *data, int len)
 #define panic(...) 		fatal(__VA_ARGS__);
 
 void dump_stack(void);
+
+/* only use for LOG_MODE_FILE mode */
+void log_set_logpath(const char *path);
+/* only use for LOG_MODE_CALLBACK mode */
+void log_set_callback(void (*cb)(int, const char *));
 
 void log_print(int level, const char *tag, const char *fmt, ...);
 void log_init(enum logger_mode mode, enum logger_level level);

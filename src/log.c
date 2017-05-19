@@ -22,7 +22,8 @@
 #include <android/log.h>
 #endif
 
-FILE *logfp = NULL;  /* Only use for LOG_MODE_FILE */
+static FILE *logfp = NULL;  /* Only use for LOG_MODE_FILE */
+static void (*log_cbprint)(int, const char *) = NULL;
 
 static uint8_t log_level = LOG_DEFAULT_LEVEL;
 static enum logger_mode log_mode = LOG_MODE_QUIET;
@@ -36,12 +37,42 @@ static const char *log_mode_str[LOG_MODE_MAX + 1] = {
 	[LOG_MODE_STDERR] = "stderr",
 	[LOG_MODE_FILE] = "file",
 	[LOG_MODE_CLOUD] = "cloud",
+	[LOG_MODE_CALLBACK] = "callback",
+#ifdef ANDROID
+	[LOG_MODE_ANDROID] = "android",
+#endif
 };
 
 
 __attribute__((weak)) const char *get_log_path(void)
 {
 	return LOG_FILE;
+}
+
+void default_cbprint(int level, const char *log)
+{
+	fputc(level_tags[level], stderr);
+	fputc(':', stderr);
+	fputs(log, stderr);
+	fputc('\n', stderr);
+	fflush(stderr);
+}
+
+void log_set_logpath(const char *path)
+{
+	if(logfp)
+		fclose(logfp);
+
+	logfp = fopen(path, "a+");
+	if(!logfp) {
+		log_mode = LOG_MODE_STDERR;
+	}
+	logv("log file:%s", path);
+}
+
+void log_set_callback(void (*cb)(int, const char *))
+{
+	log_cbprint = cb;
 }
 
 void log_print(int level, const char *tag, const char *fmt, ...)
@@ -68,7 +99,11 @@ void log_print(int level, const char *tag, const char *fmt, ...)
 		fputs(buf, logfp);
 		fflush(logfp);
 	} else if (log_mode == LOG_MODE_CLOUD) {
-	}
+		/* FIXME: */
+	}  else if(log_mode == LOG_MODE_CALLBACK) {
+		if(log_cbprint)
+			log_cbprint(level, buf + len);
+	} 
 #ifdef ANDROID
    	else if (log_mode == LOG_MODE_ANDROID) {
 		print_android_log(ANDROID_LOG_INFO, tag, buf + len);
@@ -91,12 +126,15 @@ void log_init(enum logger_mode mode, enum logger_level level)
 	if(log_mode >= LOG_MODE_MAX || log_mode < 0)
 		log_mode = DEFAULT_LOG_LEVEL;
 
-	if(log_mode == LOG_MODE_FILE) {
+	if(log_mode == LOG_MODE_FILE && !logfp) {
 		logfp = fopen(get_log_path(), "a+");
 		if(!logfp) {
 			log_mode = LOG_MODE_STDERR;
 		}
+	} else if(log_mode == LOG_MODE_CALLBACK && !log_cbprint) {
+		log_cbprint = default_cbprint;
 	}
+
 	logi("log init. mode:%d, level:%d\n",
 		   	log_mode_str[mode], level_tags[log_level]);
 }
