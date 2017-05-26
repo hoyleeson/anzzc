@@ -34,7 +34,7 @@ static char level_tags[LOG_LEVEL_MAX + 1] = {
 
 static const char *log_mode_str[LOG_MODE_MAX + 1] = {
 	[LOG_MODE_QUIET] = "quiet",
-	[LOG_MODE_STDERR] = "stderr",
+	[LOG_MODE_STDOUT] = "stdout",
 	[LOG_MODE_FILE] = "file",
 	[LOG_MODE_CLOUD] = "cloud",
 	[LOG_MODE_CALLBACK] = "callback",
@@ -51,11 +51,11 @@ __attribute__((weak)) const char *get_log_path(void)
 
 void default_cbprint(int level, const char *log)
 {
-	fputc(level_tags[level], stderr);
-	fputc(':', stderr);
-	fputs(log, stderr);
-	fputc('\n', stderr);
-	fflush(stderr);
+	fputc(level_tags[level], stdout);
+	fputc(':', stdout);
+	fputs(log, stdout);
+	fputc('\n', stdout);
+	fflush(stdout);
 }
 
 void log_set_logpath(const char *path)
@@ -65,7 +65,7 @@ void log_set_logpath(const char *path)
 
 	logfp = fopen(path, "a+");
 	if(!logfp) {
-		log_mode = LOG_MODE_STDERR;
+		log_mode = LOG_MODE_STDOUT;
 	}
 	logv("log file:%s", path);
 }
@@ -129,7 +129,7 @@ void log_init(enum logger_mode mode, enum logger_level level)
 	if(log_mode == LOG_MODE_FILE && !logfp) {
 		logfp = fopen(get_log_path(), "a+");
 		if(!logfp) {
-			log_mode = LOG_MODE_STDERR;
+			log_mode = LOG_MODE_STDOUT;
 		}
 	} else if(log_mode == LOG_MODE_CALLBACK && !log_cbprint) {
 		log_cbprint = default_cbprint;

@@ -30,7 +30,7 @@ extern "C" {
 
 enum logger_mode {
 	LOG_MODE_QUIET,
-	LOG_MODE_STDERR,
+	LOG_MODE_STDOUT,
 	LOG_MODE_FILE,
 	LOG_MODE_CLOUD,
 	LOG_MODE_CALLBACK, 
