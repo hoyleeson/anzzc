@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 
-void exec_deamons(void);
+void exec_daemons(void);
 void exec_commands(void);
 int init_configs(const char *fname);
 

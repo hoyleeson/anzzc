@@ -43,7 +43,7 @@ int test_configs(int argc, char **argv)
 	init_configs("configs/configs.conf");
 
 	exec_commands();
-	exec_deamons();
+	exec_daemons();
 	return 0;
 }
 

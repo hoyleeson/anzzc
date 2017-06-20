@@ -41,15 +41,15 @@ struct config {
     const char *value;
 };
 
-#define DEAMON_DISABLED    0x01  /* do not autostart with class */
-#define DEAMON_ONESHOT     0x02  /* do not restart on exit */
-#define DEAMON_RUNNING     0x04  /* currently active */
-#define DEAMON_RESTARTING  0x08  /* waiting to restart */
-#define DEAMON_RESTART     0x10 /* Use to safely restart (stop, wait, start) a service */
-#define DEAMON_RESET       0x40  /* Use when stopping a process, but not disabling
+#define DAEMON_DISABLED    0x01  /* do not autostart with class */
+#define DAEMON_ONESHOT     0x02  /* do not restart on exit */
+#define DAEMON_RUNNING     0x04  /* currently active */
+#define DAEMON_RESTARTING  0x08  /* waiting to restart */
+#define DAEMON_RESTART     0x10 /* Use to safely restart (stop, wait, start) a service */
+#define DAEMON_RESET       0x40  /* Use when stopping a process, but not disabling
                                     so it can be restarted with its class */
 
-struct deamon {
+struct daemon {
     struct list_head node;
 
     const char *name;
@@ -82,7 +82,7 @@ struct import {
 
 struct configs_module {
     struct list_head configs_list;
-    struct list_head deamons_list;
+    struct list_head daemons_list;
     struct list_head commands_list;
 
     void *data;
@@ -94,7 +94,7 @@ struct configs_module _configs;
 static void parse_line_no_op(struct parse_state *state, int nargs, char **args);
 static void parse_line_config(struct parse_state* state, int nargs, char **args);
 static void parse_line_command(struct parse_state* state, int nargs, char **args);
-static void parse_line_deamon(struct parse_state* state, int nargs, char **args);
+static void parse_line_daemon(struct parse_state* state, int nargs, char **args);
 static void parse_line_import(struct parse_state *state, int nargs, char **args);
 
 #include "keywords.h"
@@ -116,7 +116,7 @@ struct {
 
     [K_config] = { K_config, "[configs]", .parse = parse_line_config, 0, SECTION },
     [K_command] = { K_command, "[commands]", .parse = parse_line_command, 0, SECTION },
-    [K_deamon] = { K_deamon, "[deamons]", .parse = parse_line_deamon, 0, SECTION },
+    [K_daemon] = { K_daemon, "[daemons]", .parse = parse_line_daemon, 0, SECTION },
     [K_import] = { K_import, "[imports]", .parse = parse_line_import, 0, SECTION },
 
 #include "keywords.h"
@@ -157,7 +157,8 @@ static int valid_name(const char *name)
     return 1;
 }
 
-static struct config *config_find_by_key(const char *key) {
+static struct config *config_find_by_key(const char *key) 
+{
     struct config *conf;
     struct configs_module *configs = &_configs;
 
@@ -168,11 +169,12 @@ static struct config *config_find_by_key(const char *key) {
     return NULL;
 }
 
-static struct deamon *deamon_find_by_name(const char *name) {
-    struct deamon *dm;
+static struct daemon *daemon_find_by_name(const char *name) 
+{
+    struct daemon *dm;
     struct configs_module *configs = &_configs;
 
-    list_for_each_entry(dm, &configs->deamons_list, node) {
+    list_for_each_entry(dm, &configs->daemons_list, node) {
         if(!strcmp(dm->name, name))
             return dm;
     }
@@ -202,23 +204,23 @@ static void parse_line_config(struct parse_state* state, int nargs, char **args)
 }
 
 
-static void parse_line_deamon(struct parse_state* state, int nargs, char **args)
+static void parse_line_daemon(struct parse_state* state, int nargs, char **args)
 {
-    struct deamon *dm;
+    struct daemon *dm;
     struct configs_module *configs = state->context;
 
     if (nargs < 2) {
-        parse_error(state, "deamon must have a name and a program\n");
+        parse_error(state, "daemon must have a name and a program\n");
         return;
     }
     if (!valid_name(args[0])) {
-        parse_error(state, "invalid deamon name '%s'\n", args[0]);
+        parse_error(state, "invalid daemon name '%s'\n", args[0]);
         return;
     }
 
-    dm = deamon_find_by_name(args[0]);
+    dm = daemon_find_by_name(args[0]);
     if (dm) {
-        parse_error(state, "ignored duplicate definition of deamon '%s'\n", args[0]);
+        parse_error(state, "ignored duplicate definition of daemon '%s'\n", args[0]);
         return;
     }
 
@@ -232,7 +234,7 @@ static void parse_line_deamon(struct parse_state* state, int nargs, char **args)
     memcpy(dm->args, args + 1, sizeof(char*) * nargs);
     dm->args[nargs] = 0;
     dm->nargs = nargs;
-    list_add_tail(&dm->node, &configs->deamons_list);
+    list_add_tail(&dm->node, &configs->daemons_list);
 }
 
 static void parse_line_command(struct parse_state* state, int nargs, char **args)
@@ -354,7 +356,8 @@ static int init_parse_config_file(struct configs_module *configs, const char *fn
 }
 
 
-static void deamon_start(struct deamon *dm) {
+static void daemon_start(struct daemon *dm) 
+{
     struct stat s;
     pid_t pid;
 
@@ -362,7 +365,7 @@ static void deamon_start(struct deamon *dm) {
      * state and immediately takes it out of the restarting
      * state if it was in there
      */
-    dm->flags &= (~(DEAMON_DISABLED|DEAMON_RESTARTING|DEAMON_RESET|DEAMON_RESTART));
+    dm->flags &= (~(DAEMON_DISABLED|DAEMON_RESTARTING|DAEMON_RESET|DAEMON_RESTART));
     dm->time_started = 0;
 
     /* running processes require no additional work -- if
@@ -370,13 +373,13 @@ static void deamon_start(struct deamon *dm) {
      * that they will immediately restart on exit, unless
      * they are ONESHOT
      */
-    if (dm->flags & DEAMON_RUNNING) {
+    if (dm->flags & DAEMON_RUNNING) {
         return;
     }
 
     if (stat(dm->args[0], &s) != 0) {
         loge("cannot find '%s', disabling '%s'\n", dm->args[0], dm->name);
-        dm->flags |= DEAMON_DISABLED;
+        dm->flags |= DAEMON_DISABLED;
         return;
     }
 
@@ -397,16 +400,16 @@ static void deamon_start(struct deamon *dm) {
 
     dm->time_started = gettime();
     dm->pid = pid;
-    dm->flags |= DEAMON_RUNNING;
+    dm->flags |= DAEMON_RUNNING;
 }
 
-void exec_deamons(void) 
+void exec_daemons(void) 
 {
-    struct deamon *dm;
+    struct daemon *dm;
     struct configs_module *configs = &_configs;
 
-    list_for_each_entry(dm, &configs->deamons_list, node) {
-        deamon_start(dm);
+    list_for_each_entry(dm, &configs->daemons_list, node) {
+        daemon_start(dm);
     }
 }
 
@@ -428,7 +431,7 @@ int init_configs(const char *fname)
     struct configs_module *configs = &_configs;
 
     INIT_LIST_HEAD(&configs->configs_list);
-    INIT_LIST_HEAD(&configs->deamons_list);
+    INIT_LIST_HEAD(&configs->daemons_list);
     INIT_LIST_HEAD(&configs->commands_list);
 
     init_parse_config_file(configs, fname);
@@ -437,7 +440,8 @@ int init_configs(const char *fname)
     return 0;
 }
 
-const char *config_val_find_by_key(const char *key) {
+const char *config_val_find_by_key(const char *key) 
+{
     struct config *conf;
 
     conf = config_find_by_key(key);
@@ -449,7 +453,7 @@ const char *config_val_find_by_key(const char *key) {
 static void dump(void) 
 {
     struct config *config;
-    struct deamon *deamon;
+    struct daemon *daemon;
     struct command *command;
     struct configs_module *configs = &_configs;
 
@@ -458,12 +462,12 @@ static void dump(void)
         printf("key:%s value:%s\n", config->key, config->value);
     }
 
-    printf("\n====================deamon============================\n");
-    list_for_each_entry(deamon, &configs->deamons_list, node) {
+    printf("\n====================daemon============================\n");
+    list_for_each_entry(daemon, &configs->daemons_list, node) {
         int i;
-        printf("name:%s args:", deamon->name);
-        for(i=0; i<deamon->nargs; i++) {
-            printf("%s ", deamon->args[i]);
+        printf("name:%s args:", daemon->name);
+        for(i=0; i<daemon->nargs; i++) {
+            printf("%s ", daemon->args[i]);
         }
         printf("\n");
     }

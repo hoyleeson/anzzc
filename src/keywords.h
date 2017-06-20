@@ -10,7 +10,7 @@ enum {
     KEYWORD(config,      SECTION, 0, 0)
     KEYWORD(command,     SECTION, 0, 0)
     KEYWORD(import,      SECTION, 1, 0)
-    KEYWORD(deamon,      SECTION, 0, 0)
+    KEYWORD(daemon,      SECTION, 0, 0)
 
 #endif 	/* #ifndef KEYWORD */
     KEYWORD(loglevel,    COMMAND, 1, do_loglevel)
