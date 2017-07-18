@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <time.h>
+#include <dirent.h>
 
 #include <include/log.h>
 
@@ -23,10 +24,14 @@
 #endif
 
 static FILE *logfp = NULL;  /* Only use for LOG_MODE_FILE */
+static char logpath[PATH_MAX] = {0};  /* Only use for LOG_MODE_FILE */
+static unsigned long rotatelen = 0;
 static void (*log_cbprint)(int, const char *) = NULL;
 
 static uint8_t log_level = LOG_DEFAULT_LEVEL;
 static enum logger_mode log_mode = LOG_MODE_QUIET;
+
+static unsigned long logger_len = 0;
 
 static char level_tags[LOG_LEVEL_MAX + 1] = {
     'F', 'E', 'W', 'I', 'D', 'V',
@@ -60,19 +65,51 @@ void default_cbprint(int level, const char *log)
 
 void log_set_logpath(const char *path)
 {
+    int len = 0;
 	if(logfp)
 		fclose(logfp);
 
 	logfp = fopen(path, "a+");
 	if(!logfp) {
 		log_mode = LOG_MODE_STDOUT;
+        return;
 	}
-	logv("log file:%s", path);
+    len = snprintf(logpath, PATH_MAX - 1, "%s", path);
+    logpath[len] = 0;
+	logv("log file:%s", logpath);
+}
+
+void log_set_rotate(int len)
+{
+    rotatelen = len;
 }
 
 void log_set_callback(void (*cb)(int, const char *))
 {
 	log_cbprint = cb;
+}
+
+static void log_rotate(void)
+{
+    char path[PATH_MAX] = {0};
+
+    fclose(logfp);
+
+    snprintf(path, PATH_MAX - 1, "%s.old", logpath);
+    rename(logpath, path);
+}
+
+static void update_log_len(int len)
+{
+    if(!rotatelen)
+        return;
+
+    logger_len += len;
+
+    if(logger_len > rotatelen) {
+        log_rotate();
+        logger_len = 0;
+    }
 }
 
 void log_print(int level, const char *tag, const char *fmt, ...)
@@ -82,6 +119,7 @@ void log_print(int level, const char *tag, const char *fmt, ...)
 	time_t now;
 	char timestr[32];
     char buf[LOG_BUF_SIZE];
+    int loglen = 0;
 
     if(level > log_level || level < 0)
         return;
@@ -92,12 +130,13 @@ void log_print(int level, const char *tag, const char *fmt, ...)
     len = snprintf(buf, LOG_BUF_SIZE, "%s (%s)/[%c] ",
 		   	timestr, tag, level_tags[level]);
     va_start(ap, fmt);
-    vsnprintf(buf + len, LOG_BUF_SIZE - len, fmt, ap);
+    loglen = vsnprintf(buf + len, LOG_BUF_SIZE - len, fmt, ap);
     va_end(ap);
 
 	if (log_mode == LOG_MODE_FILE) {
 		fputs(buf, logfp);
 		fflush(logfp);
+        update_log_len(loglen);
 	} else if (log_mode == LOG_MODE_CLOUD) {
 		/* FIXME: */
 	}  else if(log_mode == LOG_MODE_CALLBACK) {

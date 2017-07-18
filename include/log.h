@@ -115,6 +115,8 @@ void dump_stack(void);
 
 /* only use for LOG_MODE_FILE mode */
 void log_set_logpath(const char *path);
+/* only use for LOG_MODE_FILE mode */
+void log_set_rotate(int len);
 /* only use for LOG_MODE_CALLBACK mode */
 void log_set_callback(void (*cb)(int, const char *));
 
