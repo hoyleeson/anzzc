@@ -24,9 +24,10 @@ extern "C" {
 #define LOG_TAG 	"anzzc"
 #endif
 
-#define LOG_FILE 		"anzzc.log"
+#define LOG_PATH 		"anzzc.log"
 
 #define DEFAULT_LOG_LEVEL 		LOG_INFO
+#define DEFAULT_LOG_MODE 		LOG_MODE_STDOUT
 
 enum logger_mode {
 	LOG_MODE_QUIET,
@@ -34,9 +35,6 @@ enum logger_mode {
 	LOG_MODE_FILE,
 	LOG_MODE_CLOUD,
 	LOG_MODE_CALLBACK, 
-#ifdef ANDROID
-	LOG_MODE_ANDROID,
-#endif
 	LOG_MODE_MAX,
 };
 
@@ -52,14 +50,37 @@ enum logger_level {
 
 #define LOG_DEFAULT_LEVEL 	LOG_INFO
 #define LOG_BUF_SIZE 		(4096)
+#define LOG_DEFAULT_ROTATE_LIMIT    (8*1024*1024)
 
-#define LOGV(...)   log_print(LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
-#define LOGD(...)   log_print(LOG_DEBUG, LOG_TAG, __VA_ARGS__)
-#define LOGI(...)   log_print(LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define LOGW(...)   log_print(LOG_WARNING, LOG_TAG, __VA_ARGS__)
-#define LOGE(...)   log_print(LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define LOGV(...)   log_print(LOG_VERBOSE, LOG_TAG, __func__, __LINE__, __VA_ARGS__)
+#define LOGD(...)   log_print(LOG_DEBUG, LOG_TAG, __func__, __LINE__, __VA_ARGS__)
+#define LOGI(...)   log_print(LOG_INFO, LOG_TAG, __func__, __LINE__, __VA_ARGS__)
+#define LOGW(...)   log_print(LOG_WARNING, LOG_TAG, __func__, __LINE__, __VA_ARGS__)
+#define LOGE(...)   log_print(LOG_ERROR, LOG_TAG, __func__, __LINE__, __VA_ARGS__)
+
 
 #define logprint(...)      printf(__VA_ARGS__)
+
+#define logi(...) 		LOGI(__VA_ARGS__)
+#define logw(...) 		LOGW(__VA_ARGS__)
+#define loge(...) 		LOGE(__VA_ARGS__)
+
+#define fatal(...) 		do { loge(__VA_ARGS__); exit(-1); } while(0)
+
+#define panic(...) 		fatal(__VA_ARGS__);
+
+void dump_stack(void);
+
+/* only use for LOG_MODE_FILE mode */
+void log_set_logpath(const char *path);
+/* only use for LOG_MODE_FILE mode */
+void log_set_rotate_limit(int len);
+/* only use for LOG_MODE_CALLBACK mode */
+void log_set_callback(void (*cb)(int, const char *));
+
+void log_print(int level, const char *tag, const char* func, int line, const char *fmt, ...);
+int log_init(enum logger_mode mode, enum logger_level level);
+void log_release(void);
 
 
 #ifdef VDEBUG
@@ -103,27 +124,6 @@ static inline void dump_data(const char *desc, void *data, int len)
 #define logd(...)
 #endif
 
-#define logi(...) 		LOGI(__VA_ARGS__)
-#define logw(...) 		LOGW(__VA_ARGS__)
-#define loge(...) 		LOGE(__VA_ARGS__)
-
-#define fatal(...) 		do { loge(__VA_ARGS__); exit(-1); } while(0)
-
-#define panic(...) 		fatal(__VA_ARGS__);
-
-void dump_stack(void);
-
-/* only use for LOG_MODE_FILE mode */
-void log_set_logpath(const char *path);
-/* only use for LOG_MODE_FILE mode */
-void log_set_rotate(int len);
-/* only use for LOG_MODE_CALLBACK mode */
-void log_set_callback(void (*cb)(int, const char *));
-
-void log_print(int level, const char *tag, const char *fmt, ...);
-void log_init(enum logger_mode mode, enum logger_level level);
-void log_release(void);
-
 
 #ifdef __cplusplus
 }
@@ -131,7 +131,7 @@ void log_release(void);
 
 
 /*XXX*/
-#define hhh    logi("--------------%s:%d------------\n", __func__, __LINE__);
+#define xxxx    logi("--------------%s:%d------------", __func__, __LINE__);
 
 #endif
 

@@ -15,23 +15,22 @@
 #include <stdarg.h>
 #include <time.h>
 #include <dirent.h>
+#include <errno.h>
+#include <pthread.h>
 
 #include <include/log.h>
 
-#ifdef ANDROID
-#include "jni.h"
-#include <android/log.h>
-#endif
+static unsigned long rotate_limit_len = 0;
 
-static FILE *logfp = NULL;  /* Only use for LOG_MODE_FILE */
-static char logpath[PATH_MAX] = {0};  /* Only use for LOG_MODE_FILE */
-static unsigned long rotatelen = 0;
+static FILE *log_stream = NULL;  /* Only use for LOG_MODE_FILE */
+static char log_path[PATH_MAX] = {0};  /* Only use for LOG_MODE_FILE */
+static unsigned long log_length = 0;
 static void (*log_cbprint)(int, const char *) = NULL;
+static pthread_mutex_t log_rotate_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static uint8_t log_level = LOG_DEFAULT_LEVEL;
 static enum logger_mode log_mode = LOG_MODE_QUIET;
 
-static unsigned long logger_len = 0;
 
 static char level_tags[LOG_LEVEL_MAX + 1] = {
     'F', 'E', 'W', 'I', 'D', 'V',
@@ -43,15 +42,12 @@ static const char *log_mode_str[LOG_MODE_MAX + 1] = {
 	[LOG_MODE_FILE] = "file",
 	[LOG_MODE_CLOUD] = "cloud",
 	[LOG_MODE_CALLBACK] = "callback",
-#ifdef ANDROID
-	[LOG_MODE_ANDROID] = "android",
-#endif
 };
 
 
 __attribute__((weak)) const char *get_log_path(void)
 {
-	return LOG_FILE;
+	return LOG_PATH;
 }
 
 void default_cbprint(int level, const char *log)
@@ -63,25 +59,25 @@ void default_cbprint(int level, const char *log)
 	fflush(stdout);
 }
 
-void log_set_logpath(const char *path)
+void log_set_log_path(const char *path)
 {
     int len = 0;
-	if(logfp)
-		fclose(logfp);
+	if(log_stream)
+		fclose(log_stream);
 
-	logfp = fopen(path, "a+");
-	if(!logfp) {
+	log_stream = fopen(path, "a+");
+	if(!log_stream) {
 		log_mode = LOG_MODE_STDOUT;
         return;
 	}
-    len = snprintf(logpath, PATH_MAX - 1, "%s", path);
-    logpath[len] = 0;
-	logv("log file:%s", logpath);
+    len = snprintf(log_path, PATH_MAX - 1, "%s", path);
+    log_path[len] = 0;
+	logv("log file:%s", log_path);
 }
 
-void log_set_rotate(int len)
+void log_set_rotate_limit(int len)
 {
-    rotatelen = len;
+    rotate_limit_len = len;
 }
 
 void log_set_callback(void (*cb)(int, const char *))
@@ -91,28 +87,48 @@ void log_set_callback(void (*cb)(int, const char *))
 
 static void log_rotate(void)
 {
+    FILE *log_stream_old; 
     char path[PATH_MAX] = {0};
 
-    fclose(logfp);
+    pthread_mutex_lock(&log_rotate_lock);
+    if(log_length < rotate_limit_len) {
+        pthread_mutex_unlock(&log_rotate_lock);
+        return;
+    }
+    log_stream_old = log_stream;
 
-    snprintf(path, PATH_MAX - 1, "%s.old", logpath);
-    rename(logpath, path);
+    snprintf(path, PATH_MAX - 1, "%s.old", log_path);
+    if (rename(log_path, path) < 0) {
+        pthread_mutex_unlock(&log_rotate_lock);
+        return;
+    }
+
+	log_stream = fopen(log_path, "a+");
+	if(!log_stream) {
+        log_stream = log_stream_old;
+        pthread_mutex_unlock(&log_rotate_lock);
+        return;
+	}
+    log_length = 0;
+    fclose(log_stream_old);
+
+    pthread_mutex_unlock(&log_rotate_lock);
 }
 
-static void update_log_len(int len)
+static void increase_log_len(int len)
 {
-    if(!rotatelen)
+    if(!rotate_limit_len)
         return;
 
-    logger_len += len;
+    log_length += len;
 
-    if(logger_len > rotatelen) {
+    if(log_length > rotate_limit_len) {
         log_rotate();
-        logger_len = 0;
     }
 }
 
-void log_print(int level, const char *tag, const char *fmt, ...)
+void log_print(int level, const char *tag, 
+        const char* func, int line, const char *fmt, ...)
 {
     va_list ap;
 	int len;
@@ -127,61 +143,66 @@ void log_print(int level, const char *tag, const char *fmt, ...)
 	time(&now);
 	strftime(timestr, 32, "%Y-%m-%d %H:%M:%S", localtime(&now));
 
-    len = snprintf(buf, LOG_BUF_SIZE, "%s (%s)/[%c] ",
-		   	timestr, tag, level_tags[level]);
+    len = snprintf(buf, LOG_BUF_SIZE, "%s (%s)/[%c] <%s:%d> ",
+		   	timestr, tag, level_tags[level], func, line);
+    loglen += len;
     va_start(ap, fmt);
-    loglen = vsnprintf(buf + len, LOG_BUF_SIZE - len, fmt, ap);
+    loglen += vsnprintf(buf + len, LOG_BUF_SIZE - len, fmt, ap);
     va_end(ap);
 
 	if (log_mode == LOG_MODE_FILE) {
-		fputs(buf, logfp);
-		fflush(logfp);
-        update_log_len(loglen);
+        increase_log_len(loglen);
+		fputs(buf, log_stream);
+		fflush(log_stream);
 	} else if (log_mode == LOG_MODE_CLOUD) {
-		/* FIXME: */
+		/* TODO: */
 	}  else if(log_mode == LOG_MODE_CALLBACK) {
 		if(log_cbprint)
 			log_cbprint(level, buf + len);
-	} 
-#ifdef ANDROID
-   	else if (log_mode == LOG_MODE_ANDROID) {
-		print_android_log(ANDROID_LOG_INFO, tag, buf + len);
-	}
-#endif
-   	else {
+	} else {
 		fputs(buf, stdout);
 		fflush(stdout);
 	}
 }
 
-void log_init(enum logger_mode mode, enum logger_level level)
+int log_init(enum logger_mode mode, enum logger_level level)
 {
 	log_mode = mode;
 	log_level = level;
 
+    log_length = 0;
 	if (log_level > LOG_LEVEL_MAX || log_level < 0)
 		log_level = DEFAULT_LOG_LEVEL;
 
 	if(log_mode >= LOG_MODE_MAX || log_mode < 0)
-		log_mode = DEFAULT_LOG_LEVEL;
+		log_mode = DEFAULT_LOG_MODE;
 
-	if(log_mode == LOG_MODE_FILE && !logfp) {
-		logfp = fopen(get_log_path(), "a+");
-		if(!logfp) {
+	if(log_mode == LOG_MODE_FILE && !log_stream) {
+		log_stream = fopen(get_log_path(), "a+");
+		if(!log_stream) {
 			log_mode = LOG_MODE_STDOUT;
 		}
+
+        if (fseek(log_stream, 0, SEEK_END) == -1) {
+            fclose(log_stream);
+            return -EINVAL;
+        }
+        log_length = ftell(log_stream);
+
+        rotate_limit_len = LOG_DEFAULT_ROTATE_LIMIT;
 	} else if(log_mode == LOG_MODE_CALLBACK && !log_cbprint) {
 		log_cbprint = default_cbprint;
 	}
 
 	logi("log init. mode:%d, level:%d\n",
 		   	log_mode_str[mode], level_tags[log_level]);
+    return 0;
 }
 
 void log_release(void)
 {
 	if(log_mode == LOG_MODE_FILE) {
-		fclose(logfp);
+		fclose(log_stream);
 	}
 }
 
