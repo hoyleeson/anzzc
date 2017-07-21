@@ -30,7 +30,7 @@ extern "C" {
 #define DEFAULT_LOG_MODE 		LOG_MODE_STDOUT
 
 enum logger_mode {
-	LOG_MODE_QUIET,
+	LOG_MODE_QUIET = 0,
 	LOG_MODE_STDOUT,
 	LOG_MODE_FILE,
 	LOG_MODE_CLOUD,
@@ -39,7 +39,7 @@ enum logger_mode {
 };
 
 enum logger_level {
-	LOG_FATAL,
+	LOG_FATAL = 0,
 	LOG_ERROR,
 	LOG_WARNING,
 	LOG_INFO,
@@ -71,6 +71,7 @@ enum logger_level {
 
 void dump_stack(void);
 
+void log_set_loglevel(int level);
 /* only use for LOG_MODE_FILE mode */
 void log_set_logpath(const char *path);
 /* only use for LOG_MODE_FILE mode */

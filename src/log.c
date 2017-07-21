@@ -59,7 +59,13 @@ void default_cbprint(int level, const char *log)
 	fflush(stdout);
 }
 
-void log_set_log_path(const char *path)
+void log_set_loglevel(int level)
+{                                
+    if (log_level != level)      
+        log_level = level;       
+}                                
+
+void log_set_logpath(const char *path)
 {
     int len = 0;
 	if(log_stream)
@@ -178,14 +184,16 @@ int log_init(enum logger_mode mode, enum logger_level level)
 		log_mode = DEFAULT_LOG_MODE;
 
 	if(log_mode == LOG_MODE_FILE && !log_stream) {
-		log_stream = fopen(get_log_path(), "a+");
+        int l;
+        l = snprintf(log_path, PATH_MAX - 1, "%s", get_log_path());
+        log_path[l] = '\0';
+        log_stream = fopen(log_path, "a+");
 		if(!log_stream) {
 			log_mode = LOG_MODE_STDOUT;
 		}
 
         if (fseek(log_stream, 0, SEEK_END) == -1) {
-            fclose(log_stream);
-            return -EINVAL;
+            /* Nothing */
         }
         log_length = ftell(log_stream);
 
