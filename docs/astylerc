@@ -35,3 +35,10 @@
 
 #Attach a pointer or reference operator (*, &, or ^) to either the variable type (left) or variable name (right), or place it between the type and name (middle)
 --align-pointer=name
+
+
+#--break-blocks
+
+#Remove extra space padding around parenthesis on the inside and outside.
+#--unpad-paren
+
