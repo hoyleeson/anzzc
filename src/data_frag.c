@@ -1,6 +1,6 @@
 /*
  * src/data_frag.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -90,14 +90,14 @@ int data_frag(data_frags_t *frags, void *data, int len)
     data_vec_t v;
     int seq = alloc_frag_seq(frags);
 
-    while(ofs < len) {
+    while (ofs < len) {
         v.ofs = ofs;
         v.data = data + ofs;
-        v.len = (len - ofs) > frags->fraglen ? frags->fraglen : len - ofs; 
+        v.len = (len - ofs) > frags->fraglen ? frags->fraglen : len - ofs;
         v.seq = seq;
 
         ofs += v.len;
-        if(ofs == len)
+        if (ofs == len)
             v.mf = 1;
         else
             v.mf = 0;
@@ -115,7 +115,7 @@ static frag_node_t *frag_node_create(data_vec_t *v, void *frag_pkt)
     frag_node_t *frag;
 
     frag = (frag_node_t *)malloc(sizeof(*frag));
-    if(!frag)
+    if (!frag)
         return NULL;
 
     frag->id = v->seq;
@@ -133,7 +133,7 @@ static void frag_node_free(frag_node_t *frag)
     free(frag);
 }
 
-static void frag_queue_free(frag_queue_t *fq) 
+static void frag_queue_free(frag_queue_t *fq)
 {
     frag_node_t *frag, *p;
     data_frags_t *frags = fq->owner;
@@ -141,7 +141,7 @@ static void frag_queue_free(frag_queue_t *fq)
     pthread_mutex_lock(&fq->lock);
     list_for_each_entry_safe(frag, p, &fq->list, node) {
         list_del(&frag->node);
-        if(frags->free && frag->pkt)
+        if (frags->free && frag->pkt)
             frags->free(frags->data, frag->pkt);
 
         frag_node_free(frag);
@@ -173,7 +173,7 @@ static void __attribute__ ((unused)) dump_frag_queue(frag_queue_t *fq)
     }
 
     list_for_each_entry_reverse(frag, &fq->list, node) {
-        if(nextofs != frag->frag_ofs) {
+        if (nextofs != frag->frag_ofs) {
             logi("frag [%d %d] lost.\n", nextofs, frag->frag_ofs);
             nextofs = frag->frag_ofs + frag->datalen;
         } else
@@ -232,13 +232,13 @@ static frag_queue_t *find_frag_queue(data_frags_t *frags, frag_node_t *frag)
     pthread_mutex_lock(&frags->lock);
 
     hlist_for_each_entry(fq, pos, &frags->hlist[key], entry) {
-        if(fq->id == frag->id)
+        if (fq->id == frag->id)
             break;
     }
 
-    if(!fq) {
+    if (!fq) {
         fq = frag_queue_create(frags, frag->id);
-        hlist_add_head(&fq->entry, &frags->hlist[key]);        
+        hlist_add_head(&fq->entry, &frags->hlist[key]);
     }
     pthread_mutex_unlock(&frags->lock);
 
@@ -251,11 +251,10 @@ static int data_frag_insert(frag_queue_t *fq, frag_node_t *frag)
     frag_node_t *p;
 
     list_for_each_entry(p, &fq->list, node) {
-        if(p->frag_ofs < frag->frag_ofs) {
+        if (p->frag_ofs < frag->frag_ofs) {
             list_add(&frag->node, p->node.prev);
             return 0;
-        }
-        else if(p->frag_ofs == frag->frag_ofs) {
+        } else if (p->frag_ofs == frag->frag_ofs) {
             return -EEXIST;
         }
     }
@@ -265,14 +264,14 @@ static int data_frag_insert(frag_queue_t *fq, frag_node_t *frag)
     return 0;
 }
 
-static int __attribute__((warn_unused_result)) check_defrag(frag_queue_t *fq) 
+static int __attribute__((warn_unused_result)) check_defrag(frag_queue_t *fq)
 {
     int ret = 0;
     int nextofs = 0;
     frag_node_t *frag;
 
     list_for_each_entry_reverse(frag, &fq->list, node) {
-        if(nextofs != frag->frag_ofs) {
+        if (nextofs != frag->frag_ofs) {
             ret = -EINVAL;
             goto out;
         }
@@ -289,22 +288,22 @@ static int data_frag_queue(frag_queue_t *fq, frag_node_t *frag)
 
     pthread_mutex_lock(&fq->lock);
     ret = data_frag_insert(fq, frag);
-    if(ret == -EEXIST) {
+    if (ret == -EEXIST) {
         pthread_mutex_unlock(&fq->lock);
         return ret;
     }
 
     fq->recv_len += frag->datalen;
-    if(frag->mf) {
+    if (frag->mf) {
         fq->total_len = frag->frag_ofs + frag->datalen;
     }
     pthread_mutex_unlock(&fq->lock);
 
-    if(!fq->total_len ||
-            fq->total_len != fq->recv_len) 
+    if (!fq->total_len ||
+        fq->total_len != fq->recv_len)
         return 0;
 
-    if(check_defrag(fq)) {
+    if (check_defrag(fq)) {
         logw("check defrag fail.\n");
         return -EINVAL;
     }
@@ -336,25 +335,25 @@ int data_defrag(data_frags_t *frags, data_vec_t *v, void *frag_pkt)
     frag = frag_node_create(v, frag_pkt);
     fq = find_frag_queue(frags, frag);
 
-    if(!fq) {
+    if (!fq) {
         ret = -EINVAL;
         goto fail;
     }
 
     ret = data_frag_queue(fq, frag);
-    if(ret <= 0) {
+    if (ret <= 0) {
         return ret;
     }
 
     /* All data have been successfully received, submit now. */
     len = fq->total_len;
-    if(len > DATA_MAX_LEN) {
+    if (len > DATA_MAX_LEN) {
         ret = -EINVAL;
         goto fail;
     }
 
     data = malloc(len);
-    if(!data) {
+    if (!data) {
         ret = -ENOMEM;
         goto fail;
     }
@@ -372,17 +371,17 @@ fail:
     return ret;
 }
 
-data_frags_t *data_frag_init(int fraglen, 
-        void (*input)(void *, void *, int),
-        void (*output)(void *, data_vec_t *v),
-        void (*free_pkt)(void *opaque, void *frag_pkt),
-        void *opaque)
+data_frags_t *data_frag_init(int fraglen,
+                             void (*input)(void *, void *, int),
+                             void (*output)(void *, data_vec_t *v),
+                             void (*free_pkt)(void *opaque, void *frag_pkt),
+                             void *opaque)
 {
     int i;
     data_frags_t *frags;
 
     frags = (data_frags_t *)malloc(sizeof(*frags));
-    if(!frags)
+    if (!frags)
         return NULL;
 
     frags->fraglen = fraglen;
@@ -393,7 +392,7 @@ data_frags_t *data_frag_init(int fraglen,
     frags->data = opaque;
     frags->nextseq = 0;
 
-    for(i=0; i<FRAG_HASH_SZ; i++) {
+    for (i = 0; i < FRAG_HASH_SZ; i++) {
         INIT_HLIST_HEAD(&frags->hlist[i]);
     }
 
@@ -406,9 +405,9 @@ void data_frag_release(data_frags_t *frags)
 {
     int i;
 
-    for(i=0; i<FRAG_HASH_SZ; i++) {
+    for (i = 0; i < FRAG_HASH_SZ; i++) {
         frag_queue_t *fq;
-        struct hlist_node *pos; 
+        struct hlist_node *pos;
 
         hlist_for_each_entry(fq, pos, &frags->hlist[i], entry) {
             rm_frag_queue(frags, fq);

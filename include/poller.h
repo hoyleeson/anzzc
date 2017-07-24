@@ -1,6 +1,6 @@
 /*
  * include/poller.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -44,7 +44,7 @@
 /* the event handler function type, 'data' is a user-specific
  * opaque pointer passed to poller_add().
  */
-typedef void (*event_func)(void*  data, int  events);
+typedef void (*event_func)(void  *data, int  events);
 
 /* bit flags for the struct event_hook structure.
  *
@@ -61,8 +61,8 @@ enum {
 
 
 #define EV_READ 	EPOLLIN
-#define EV_WRITE 	EPOLLOUT		
-#define EV_ERROR 	EPOLLERR		
+#define EV_WRITE 	EPOLLOUT
+#define EV_ERROR 	EPOLLERR
 #define EV_HUP      EPOLLHUP
 
 /* A struct event_hook structure is used to monitor a given
@@ -73,7 +73,7 @@ struct event_hook {
     int wanted;  /* events we are monitoring */
     int events;  /* events that occured */
     int state;   /* see HOOK_XXX constants */
-    void* data; /* user-provided handler parameter */
+    void *data; /* user-provided handler parameter */
     event_func func; /* event handler callback */
 };
 
@@ -84,8 +84,8 @@ struct poller {
     int num_fds;
     int max_fds;
 
-    struct epoll_event* events;
-    struct event_hook* hooks;
+    struct epoll_event *events;
+    struct event_hook *hooks;
     int ctl_socks[2];
     int running;
 
@@ -99,20 +99,20 @@ extern "C" {
 #endif
 
 
-void poller_event_add(struct poller* l, int fd, event_func func, void* user);
-void poller_event_del(struct poller* l, int fd);
-void poller_event_enable(struct poller* l, int  fd, int  events);
-void poller_event_disable(struct poller* l, int  fd, int  events);
-void poller_event_signal(struct poller* l);
+void poller_event_add(struct poller *l, int fd, event_func func, void *user);
+void poller_event_del(struct poller *l, int fd);
+void poller_event_enable(struct poller *l, int  fd, int  events);
+void poller_event_disable(struct poller *l, int  fd, int  events);
+void poller_event_signal(struct poller *l);
 
-void poller_loop(struct poller* l);
-void poller_done(struct poller* l);
+void poller_loop(struct poller *l);
+void poller_done(struct poller *l);
 
 int poller_init(struct poller *l);
-void poller_release(struct poller*  l);
+void poller_release(struct poller  *l);
 
 struct poller *poller_create(void);
-void poller_release(struct poller*  l);
+void poller_release(struct poller  *l);
 
 #ifdef __cplusplus
 }

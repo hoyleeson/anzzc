@@ -1,6 +1,6 @@
 /*
  * src/hbeat.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -24,7 +24,7 @@ void user_heartbeat(hbeat_node_t *hbeat)
     hbeat->online = 1;
 }
 
-void hbeat_add_to_god(hbeat_god_t *god, hbeat_node_t *hbeat) 
+void hbeat_add_to_god(hbeat_god_t *god, hbeat_node_t *hbeat)
 {
     hbeat->count = HBEAT_INIT;
     hbeat->online = 1;
@@ -34,7 +34,7 @@ void hbeat_add_to_god(hbeat_god_t *god, hbeat_node_t *hbeat)
     pthread_mutex_unlock(&god->lock);
 }
 
-void hbeat_rm_from_god(hbeat_god_t *god, hbeat_node_t *hbeat) 
+void hbeat_rm_from_god(hbeat_god_t *god, hbeat_node_t *hbeat)
 {
     pthread_mutex_lock(&god->lock);
     list_del(&hbeat->node);
@@ -49,7 +49,7 @@ void hbeat_god_handle(unsigned long data)
     list_for_each_entry_safe(hbeat, tmp, &god->list, node) {
         hbeat->count--;
 
-        if(hbeat->count <= 0) {
+        if (hbeat->count <= 0) {
             hbeat->online = 0;
             god->dead(hbeat);
         }

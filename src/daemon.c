@@ -1,6 +1,6 @@
 /*
  * src/daemon.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -26,7 +26,7 @@ int enter_daemon(void)
     int pid;
     int fd;
 
-    switch(pid = fork()) {
+    switch (pid = fork()) {
         case -1:
             /* error */
             loge("fork failed.\n");
@@ -41,7 +41,7 @@ int enter_daemon(void)
             break;
     }
 
-    if(setsid() == -1) {
+    if (setsid() == -1) {
         loge("setsid failed.\n");
         return -EINVAL;
     }

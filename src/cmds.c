@@ -1,6 +1,6 @@
 /*
  * src/cmds.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -21,21 +21,20 @@
 #include <include/log.h>
 #include <include/cmds.h>
 
-cmd_tbl_t* get_static_cmd_list(void);
+cmd_tbl_t *get_static_cmd_list(void);
 
-static int do_help(int argc, char** argv)
+static int do_help(int argc, char **argv)
 {
     cmd_tbl_t *cmdp = get_static_cmd_list();
 
-    for(; cmdp->name != 0; cmdp++)
-    {
+    for (; cmdp->name != 0; cmdp++) {
         printf("[%s]\n\tusage:\n", cmdp->name);
         printf("\t%s\n", cmdp->usage);
     }
     return 0;
 }
 
-static int do_version(int argc, char** argv)
+static int do_version(int argc, char **argv)
 {
     printf("program:  %s\n", PACKAGE_NAME);
     printf("version:  V%s\n", VERSION);
@@ -43,13 +42,13 @@ static int do_version(int argc, char** argv)
     return 0;
 }
 
-static int do_exit(int argc, char** argv)
+static int do_exit(int argc, char **argv)
 {
     char ch;
     int opt;
 
-    while((opt = getopt(argc, argv,"f")) != -1) {
-        switch(opt) {
+    while ((opt = getopt(argc, argv, "f")) != -1) {
+        switch (opt) {
             case 'f':
                 exit(0);
                 break;
@@ -61,13 +60,13 @@ static int do_exit(int argc, char** argv)
 
     printf("exit program?(y|n)");
     ch = getchar();
-    if(ch == 'y') {
+    if (ch == 'y') {
         exit(0);
     }
     return 0;
 }
 
-static int do_quit(int argc, char** argv)
+static int do_quit(int argc, char **argv)
 {
     return do_exit(argc, argv);
 }
@@ -95,7 +94,7 @@ static cmd_tbl_t cmd_tbl_list[] = {
 static LIST_HEAD(dynamic_cmd_list);
 static pthread_mutex_t cmd_lock = PTHREAD_MUTEX_INITIALIZER;
 
-cmd_tbl_t* get_static_cmd_list(void)
+cmd_tbl_t *get_static_cmd_list(void)
 {
     return cmd_tbl_list;
 }
@@ -125,13 +124,13 @@ static cmd_tbl_t *find_cmd(const char *cmd)
     /* Stage 1: Static commands. */
     cmd_list = get_static_cmd_list();
 
-    if(!cmd)
+    if (!cmd)
         return NULL;
 
     len = strlen(cmd);
-    for(cmdp = cmd_list; cmdp->name != 0; cmdp++) {
-        if(strncmp(cmdp->name, cmd, len) == 0) {
-            if(len == strlen(cmdp->name))
+    for (cmdp = cmd_list; cmdp->name != 0; cmdp++) {
+        if (strncmp(cmdp->name, cmd, len) == 0) {
+            if (len == strlen(cmdp->name))
                 return cmdp;
 
             cmdp_temp = cmdp;
@@ -142,8 +141,8 @@ static cmd_tbl_t *find_cmd(const char *cmd)
     /* Stage 2: Dynamic commands. */
     pthread_mutex_lock(&cmd_lock);
     list_for_each_entry(cmdp, &dynamic_cmd_list, entry) {
-        if(strncmp(cmdp->name, cmd, len) == 0) {
-            if(len == strlen(cmdp->name)) {
+        if (strncmp(cmdp->name, cmd, len) == 0) {
+            if (len == strlen(cmdp->name)) {
                 pthread_mutex_unlock(&cmd_lock);
                 return cmdp;
             }
@@ -154,19 +153,19 @@ static cmd_tbl_t *find_cmd(const char *cmd)
     }
     pthread_mutex_unlock(&cmd_lock);
 
-    if(n_found) {
+    if (n_found) {
         return cmdp_temp;
     }
     return NULL;
 }
 
-int execute_cmds(int argc, char** argv)
+int execute_cmds(int argc, char **argv)
 {
     int ret = -EINVAL;
-    cmd_tbl_t* cmdtp;
+    cmd_tbl_t *cmdtp;
 
     cmdtp = find_cmd(argv[0]);
-    if(!cmdtp)
+    if (!cmdtp)
         return ret;
 
     ret = cmdtp->cmd(argc, argv);

@@ -1,6 +1,6 @@
 /*
  * include/timer.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -31,16 +31,16 @@ extern "C" {
 #define NSEC_PER_SEC 			(1000000000LL)
 
 struct timer_list {
-	struct rb_node entry;
-	/* list need be used when several timers have the same expires*/
-	struct list_head list;
-	uint64_t expires;
-	struct timer_base *base;
+    struct rb_node entry;
+    /* list need be used when several timers have the same expires*/
+    struct list_head list;
+    uint64_t expires;
+    struct timer_base *base;
 
-	void (*function)(unsigned long);
-	unsigned long data;
+    void (*function)(unsigned long);
+    unsigned long data;
 
-	int state;
+    int state;
 };
 
 
@@ -76,25 +76,25 @@ extern struct timer_base _timers;
 /*register timer notifier to tick, get beat the clock. */
 int init_timers(void);
 
-static inline void setup_timer(struct timer_list * timer,
-				void (*function)(unsigned long), unsigned long data)
+static inline void setup_timer(struct timer_list *timer,
+                               void (*function)(unsigned long), unsigned long data)
 {
-	timer->function = function;
-	timer->data = data;
+    timer->function = function;
+    timer->data = data;
 }
 
-void init_timer(struct timer_list* timer);
+void init_timer(struct timer_list *timer);
 int add_timer(struct timer_list *timer);
 int del_timer(struct timer_list *timer);
-int mod_timer(struct timer_list* timer, unsigned long expires);
+int mod_timer(struct timer_list *timer, unsigned long expires);
 
 
 /* current time in milliseconds */
 static inline uint64_t curr_time_ms(void)
 {
-	struct timespec tm;
-	clock_gettime(CLOCK_MONOTONIC, &tm);
-	return tm.tv_sec * MSEC_PER_SEC + (tm.tv_nsec / NSEC_PER_MSEC);
+    struct timespec tm;
+    clock_gettime(CLOCK_MONOTONIC, &tm);
+    return tm.tv_sec * MSEC_PER_SEC + (tm.tv_nsec / NSEC_PER_MSEC);
 }
 
 /**
@@ -107,9 +107,9 @@ static inline uint64_t curr_time_ms(void)
  *
  * return value: 1 if the timer is pending, 0 if not.
  */
-static inline int timer_pending(const struct timer_list * timer)
+static inline int timer_pending(const struct timer_list *timer)
 {
-	return !RB_EMPTY_NODE(&timer->entry) || !list_empty(&timer->list);
+    return !RB_EMPTY_NODE(&timer->entry) || !list_empty(&timer->list);
 }
 
 #ifdef __cplusplus

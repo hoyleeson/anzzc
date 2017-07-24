@@ -1,6 +1,6 @@
 /*
  * src/utils.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -32,32 +32,32 @@
 /** UTILITIES
  **/
 
-void* xalloc(size_t sz)
+void *xalloc(size_t sz)
 {
-    void* p;
+    void *p;
 
-    if(sz == 0)
+    if (sz == 0)
         return NULL;
 
     p = malloc(sz);
-    if(p == NULL)
+    if (p == NULL)
         fatal("not enough memory");
 
     return p;
 }
 
-void* xzalloc(size_t sz)
+void *xzalloc(size_t sz)
 {
-    void* p = xalloc(sz);
+    void *p = xalloc(sz);
     memset(p, 0, sz);
     return p;
 }
 
-void* xrealloc(void* block, size_t size)
+void *xrealloc(void *block, size_t size)
 {
-    void* p = realloc(block, size);
+    void *p = realloc(block, size);
 
-    if(p == NULL && size > 0)
+    if (p == NULL && size > 0)
         fatal("not enough memory");
 
     return p;
@@ -71,15 +71,15 @@ int hexdigit(int c)
     if (d < 10) return d;
 
     d = (unsigned)(c - 'a');
-    if (d < 6) return d+10;
+    if (d < 6) return d + 10;
 
     d = (unsigned)(c - 'A');
-    if (d < 6) return d+10;
+    if (d < 6) return d + 10;
 
     return -1;
 }
 
-int hex2int(const uint8_t* data, int len)
+int hex2int(const uint8_t *data, int len)
 {
     int  result = 0;
     while (len > 0) {
@@ -105,8 +105,7 @@ int hex2int(const uint8_t* data, int len)
             }
 
             return -1;
-        }
-        while(0);
+        } while (0);
 
         result |= d;
         len    -= 1;
@@ -114,34 +113,34 @@ int hex2int(const uint8_t* data, int len)
     return result;
 }
 
-void int2hex(int value, uint8_t* to, int width)
+void int2hex(int value, uint8_t *to, int width)
 {
     int  nn = 0;
     static const char hexchars[16] = "0123456789abcdef";
 
     for (--width; width >= 0; width--, nn++) {
-        to[nn] = hexchars[(value >> (width*4)) & 15];
+        to[nn] = hexchars[(value >> (width * 4)) & 15];
     }
 }
 
-int xread(int fd, void* to, int len)
+int xread(int fd, void *to, int len)
 {
     int ret;
 
     do {
         ret = read(fd, to, len);
-    } while(ret < 0 && errno == EINTR);
+    } while (ret < 0 && errno == EINTR);
 
     return ret;
 }
 
-int xwrite(int fd, const void* from, int len)
+int xwrite(int fd, const void *from, int len)
 {
     int ret;
 
     do {
         ret = write(fd, from, len);
-    } while(ret < 0 && errno == EINTR);
+    } while (ret < 0 && errno == EINTR);
 
     return ret;
 }
@@ -157,7 +156,7 @@ void setnonblock(int fd)
 
     if (flags < 0) {
         fatal("%s: could not get flags for fd %d: %s",
-                __func__, fd, strerror(errno));
+              __func__, fd, strerror(errno));
     }
 
     do {
@@ -166,7 +165,7 @@ void setnonblock(int fd)
 
     if (ret < 0) {
         fatal("%s: could not set fd %d to non-blocking: %s",
-                __func__, fd, strerror(errno));
+              __func__, fd, strerror(errno));
     }
 }
 
@@ -179,7 +178,7 @@ int xaccept(int fd)
 
     do {
         ret = accept(fd, &from, &fromlen);
-    } while(ret < 0 && errno == EINTR);
+    } while (ret < 0 && errno == EINTR);
 
     return ret;
 }
@@ -220,7 +219,7 @@ void *read_file(const char *fname, unsigned *_sz)
 
     data = 0;
     fd = open(fname, O_RDONLY);
-    if(fd < 0)
+    if (fd < 0)
         return 0;
 
     // for security reasons, disallow world-writable
@@ -235,30 +234,30 @@ void *read_file(const char *fname, unsigned *_sz)
     }
 
     sz = lseek(fd, 0, SEEK_END);
-    if(sz < 0)
+    if (sz < 0)
         goto oops;
 
-    if(lseek(fd, 0, SEEK_SET) != 0) 
+    if (lseek(fd, 0, SEEK_SET) != 0)
         goto oops;
 
-    data = (char*) malloc(sz + 2);
-    if(data == 0)
+    data = (char *) malloc(sz + 2);
+    if (data == 0)
         goto oops;
 
-    if(read(fd, data, sz) != sz) 
+    if (read(fd, data, sz) != sz)
         goto oops;
 
     close(fd);
     data[sz] = '\n';
-    data[sz+1] = 0;
-    if(_sz)
+    data[sz + 1] = 0;
+    if (_sz)
         *_sz = sz;
 
     return data;
 
 oops:
     close(fd);
-    if(data != 0)
+    if (data != 0)
         free(data);
     return 0;
 }

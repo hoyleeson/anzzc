@@ -1,6 +1,6 @@
 /*
  * include/bsearch.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -24,13 +24,14 @@ extern "C" {
 
 
 void *bsearch(const void *key, const void *base, size_t num, size_t size,
-        int (*cmp)(const void *key, const void *elt));
+              int (*cmp)(const void *key, const void *elt));
 
 #define BSEARCH_MATCH_UP 		(0)
 #define BSEARCH_MATCH_DOWN 		(1)
 
-void *bsearch_edge(const void *key, const void *base, size_t num, size_t size, int edge,
-        int (*cmp)(const void *key, const void *elt));
+void *bsearch_edge(const void *key, const void *base, size_t num, size_t size,
+                   int edge,
+                   int (*cmp)(const void *key, const void *elt));
 
 #ifdef __cplusplus
 }

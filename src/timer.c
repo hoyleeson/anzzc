@@ -1,6 +1,6 @@
 /*
  * src/timer.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -51,7 +51,8 @@ static void timer_set_interval(struct timer_list *timer, uint64_t expires)
         loge("timer_set_interval: timerfd_settime failed, %d.%d\n", i_sec, i_msec);
 }
 
-static void timer_set_expires(struct timer_list *timer, uint64_t expires) {
+static void timer_set_expires(struct timer_list *timer, uint64_t expires)
+{
     uint64_t now = curr_time_ms();
     struct timer_base *base = timer->base;
 
@@ -59,29 +60,29 @@ static void timer_set_expires(struct timer_list *timer, uint64_t expires) {
     timer_set_interval(timer, expires - now);
 }
 
-static void update_timer_recent_expires(struct timer_base *base) 
+static void update_timer_recent_expires(struct timer_base *base)
 {
     uint64_t now = curr_time_ms();
     struct timer_list *recent;
     struct rb_root *root = &base->timer_tree;
 
-    if(RB_EMPTY_ROOT(root))
+    if (RB_EMPTY_ROOT(root))
         return;
 
     recent = rb_entry(root->rb_node, struct timer_list, entry);
 
-    if(time_before(recent->expires, base->next_expires) ||
-            time_before_eq(base->next_expires, now)) {
+    if (time_before(recent->expires, base->next_expires) ||
+        time_before_eq(base->next_expires, now)) {
         timer_set_expires(recent, recent->expires);
     }
 }
 
-static void timer_insert_tree(struct timer_list *timer) 
+static void timer_insert_tree(struct timer_list *timer)
 {
     struct timer_list *t;
-    struct timer_base* base = timer->base;
-    struct rb_node ** p = &base->timer_tree.rb_node;
-    struct rb_node * parent = NULL;
+    struct timer_base *base = timer->base;
+    struct rb_node **p = &base->timer_tree.rb_node;
+    struct rb_node *parent = NULL;
 
     while (*p) {
         parent = *p;
@@ -106,16 +107,16 @@ static void timer_insert_tree(struct timer_list *timer)
 
 static void timer_erase_tree(struct timer_list *timer)
 {
-    if(!RB_EMPTY_NODE(&timer->entry)) {
-        struct timer_base* base = timer->base;
+    if (!RB_EMPTY_NODE(&timer->entry)) {
+        struct timer_base *base = timer->base;
 
         rb_erase_init(&timer->entry, &base->timer_tree);
-        if(!list_empty(&timer->list)) {
+        if (!list_empty(&timer->list)) {
             struct timer_list *entry = NULL;
             entry = list_entry(timer->list.next, struct timer_list, list);
             timer_insert_tree(entry);
-			list_del_init(&timer->list);
-			return;
+            list_del_init(&timer->list);
+            return;
         }
     }
 
@@ -130,13 +131,13 @@ static inline void detach_timer(struct timer_list *timer)
 }
 
 /*really add timer to timer list.*/
-static int internal_add_timer(struct timer_list* timer)
+static int internal_add_timer(struct timer_list *timer)
 {
-    struct timer_base* base = timer->base;
+    struct timer_base *base = timer->base;
     uint64_t expires = timer->expires;
     uint64_t now = curr_time_ms();
 
-    if(time_before(expires, now))
+    if (time_before(expires, now))
         return -EINVAL;
 
     timer_insert_tree(timer);
@@ -166,14 +167,14 @@ static int internal_add_timer(struct timer_list* timer)
  * (ie. mod_timer() of an inactive timer returns 0, mod_timer() of an
  * active timer returns 1.)
  */
-int mod_timer(struct timer_list* timer, unsigned long expires)
+int mod_timer(struct timer_list *timer, unsigned long expires)
 {
     int ret = 0;
-    struct timer_base* base = timer->base;
+    struct timer_base *base = timer->base;
 
     pthread_mutex_lock(&base->lock);
-    if(timer_pending(timer)) {
-        if(timer->expires == expires) {
+    if (timer_pending(timer)) {
+        if (timer->expires == expires) {
             goto out_unlock;
         }
         detach_timer(timer);
@@ -193,12 +194,12 @@ out_unlock:
 int add_timer(struct timer_list *timer)
 {
     int ret;
-    if(timer_pending(timer)) {
+    if (timer_pending(timer)) {
         loge("timer was exist! add timer fail.\n");
         return -EINVAL;
     }
     ret = mod_timer(timer, timer->expires);
-    if(ret != 0)
+    if (ret != 0)
         return -EINVAL;
 
     return 0;
@@ -210,13 +211,13 @@ int add_timer(struct timer_list *timer)
 int del_timer(struct timer_list *timer)
 {
     int ret  = 0;
-    struct timer_base* base = timer->base;
+    struct timer_base *base = timer->base;
 
     pthread_mutex_lock(&base->lock);
-    if(timer_pending(timer)) {
+    if (timer_pending(timer)) {
         detach_timer(timer);
         update_timer_recent_expires(base);
-        ret = 1;	
+        ret = 1;
     }
     pthread_mutex_unlock(&base->lock);
 
@@ -226,15 +227,15 @@ int del_timer(struct timer_list *timer)
 #define trace_timer_expire_entry(timer)
 #define trace_timer_expire_exit(timer)
 
-static void call_timer_fn(struct timer_list *timer, 
-        void (*fn)(unsigned long), unsigned long data)
+static void call_timer_fn(struct timer_list *timer,
+                          void (*fn)(unsigned long), unsigned long data)
 {
     trace_timer_expire_entry(timer);
     fn(data);
     trace_timer_expire_exit(timer);
 }
 
-static void run_timers(struct timer_base* base)
+static void run_timers(struct timer_base *base)
 {
     struct timer_list *timer, *tmp;
     uint64_t now = curr_time_ms();
@@ -244,13 +245,13 @@ static void run_timers(struct timer_base* base)
     pthread_mutex_lock(&base->lock);
 
 next:
-	if(RB_EMPTY_ROOT(root))
-		goto empty;
+    if (RB_EMPTY_ROOT(root))
+        goto empty;
 
     node = root->rb_node;
     timer = rb_entry(node, struct timer_list, entry);
 
-    if(time_before_eq(timer->expires, now)) {
+    if (time_before_eq(timer->expires, now)) {
         void (*fn)(unsigned long);
         unsigned long data;
         struct list_head *l;
@@ -275,7 +276,7 @@ next:
 
         pthread_mutex_lock(&base->lock);
 
-		goto next;
+        goto next;
     }
 
     update_timer_recent_expires(base);
@@ -285,7 +286,7 @@ empty:
 }
 
 
-void init_timer(struct timer_list* timer)
+void init_timer(struct timer_list *timer)
 {
     memset(timer, 0, sizeof(struct timer_list));
     rb_init_node(&timer->entry);
@@ -296,14 +297,14 @@ void init_timer(struct timer_list* timer)
 
 static void timer_handler(void *priv, uint8_t *data, int len)
 {
-    struct timer_base* base = (struct timer_base *)priv;
+    struct timer_base *base = (struct timer_base *)priv;
 
     run_timers(base);
 }
 
 static void timer_close(void *priv)
 {
-    struct timer_base* base = (struct timer_base *)priv;
+    struct timer_base *base = (struct timer_base *)priv;
 
     base->ioh = NULL;
 }
@@ -312,20 +313,20 @@ static void timer_close(void *priv)
 int init_timers(void)
 {
     ioasync_t *aio;
-    struct timer_base* base = &_timers;
+    struct timer_base *base = &_timers;
 
     base->clockid = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 
     pthread_mutex_init(&base->lock, NULL);
 
     aio = get_global_ioasync();
-    if(aio == NULL) {
+    if (aio == NULL) {
         loge("please initialize ioasync.\n");
         return -EINVAL;
     }
 
-    base->ioh = iohandler_create(aio, base->clockid, 
-            timer_handler, timer_close, base);	
+    base->ioh = iohandler_create(aio, base->clockid,
+                                 timer_handler, timer_close, base);
     return 0;
 }
 

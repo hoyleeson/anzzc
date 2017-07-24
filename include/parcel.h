@@ -1,6 +1,6 @@
 /*
  * include/parcel.h
- * 
+ *
  * 2016-07-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -21,7 +21,7 @@
 
 struct parcel {
     int error;
-    uint8_t* data;
+    uint8_t *data;
     size_t data_size;
     size_t data_pos;
 
@@ -40,7 +40,7 @@ void parcel_release(struct parcel *p);
 void parcel_clear(struct parcel *par);
 
 /*get parcel data.*/
-const uint8_t* parcel_data(struct parcel *par);
+const uint8_t *parcel_data(struct parcel *par);
 
 /*get parcel data size.*/
 size_t parcel_datasize(struct parcel *par);
@@ -58,18 +58,18 @@ int parcel_set_data_size(struct parcel *par, size_t size);
 void parcel_set_data_pos(struct parcel *par, size_t pos);
 
 /*set the parcel data capacity.*/
-int parcel_set_data_capacity(struct parcel *par, size_t size);  
+int parcel_set_data_capacity(struct parcel *par, size_t size);
 
 /*set the parcel data.*/
-int parcel_set_data(struct parcel *par, const uint8_t* buffer, size_t len);
+int parcel_set_data(struct parcel *par, const uint8_t *buffer, size_t len);
 
-void* parcel_write_inplace(struct parcel *par, size_t len);
+void *parcel_write_inplace(struct parcel *par, size_t len);
 
-int parcel_write(struct parcel *par, const void* data, size_t len);
-int parcel_read(struct parcel *par, _out void* data, size_t len);
+int parcel_write(struct parcel *par, const void *data, size_t len);
+int parcel_read(struct parcel *par, _out void *data, size_t len);
 
-int parcel_write_string(struct parcel *par, const char* str);
-const char* parcel_read_string(struct parcel *par);
+int parcel_write_string(struct parcel *par, const char *str);
+const char *parcel_read_string(struct parcel *par);
 
 int parcel_write_uint8(struct parcel *par, uint8_t val);
 int parcel_write_uint16(struct parcel *par, uint16_t val);

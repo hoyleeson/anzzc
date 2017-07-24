@@ -1,6 +1,6 @@
 /*
  * include/find_bit.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -52,7 +52,7 @@ extern "C" {
  * If no bits are set, returns @size.
  */
 extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
-		size, unsigned long offset);
+                                   size, unsigned long offset);
 
 /**
  * find_next_zero_bit - find the next cleared bit in a memory region
@@ -64,7 +64,7 @@ extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
  * If no bits are zero, returns @size.
  */
 extern unsigned long find_next_zero_bit(const unsigned long *addr, unsigned
-		long size, unsigned long offset);
+                                        long size, unsigned long offset);
 
 
 /**
@@ -76,7 +76,7 @@ extern unsigned long find_next_zero_bit(const unsigned long *addr, unsigned
  * If no bits are set, returns @size.
  */
 extern unsigned long find_first_bit(const unsigned long *addr,
-				    unsigned long size);
+                                    unsigned long size);
 
 /**
  * find_first_zero_bit - find the first cleared bit in a memory region
@@ -87,7 +87,7 @@ extern unsigned long find_first_bit(const unsigned long *addr,
  * If no bits are zero, returns @size.
  */
 extern unsigned long find_first_zero_bit(const unsigned long *addr,
-					 unsigned long size);
+        unsigned long size);
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,6 @@
 /*
  * src/workqueue.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -149,11 +149,11 @@ static inline struct global_wq *get_global_wq(void)
 }
 
 
-static inline void set_work_wq(struct work_struct *work, 
-        struct workqueue_struct *wq, unsigned long extra_flags)
+static inline void set_work_wq(struct work_struct *work,
+                               struct workqueue_struct *wq, unsigned long extra_flags)
 {
-    fake_atomic_long_set(&work->data, 
-            (long)wq | WORK_STRUCT_PENDING | (extra_flags & WORK_STRUCT_FLAG_MASK));
+    fake_atomic_long_set(&work->data,
+                         (long)wq | WORK_STRUCT_PENDING | (extra_flags & WORK_STRUCT_FLAG_MASK));
 }
 
 
@@ -322,9 +322,9 @@ static struct worker *__find_worker_executing_work(struct global_wq *gwq,
     struct hlist_node *tmp;
 
     hlist_for_each_entry(worker, tmp, bwh, hentry)
-        if (worker->current_work == work &&
-                worker->current_func == work->func)
-            return worker;
+    if (worker->current_work == work &&
+        worker->current_func == work->func)
+        return worker;
     return NULL;
 }
 
@@ -417,8 +417,8 @@ static inline struct list_head *gwq_determine_ins_pos(struct global_wq *gwq,
  * CONTEXT:
  */
 static void insert_work(struct workqueue_struct *wq,
-        struct work_struct *work, struct list_head *head,
-        unsigned int extra_flags)
+                        struct work_struct *work, struct list_head *head,
+                        unsigned int extra_flags)
 {
     struct global_wq *gwq = wq->gwq;
 
@@ -469,9 +469,9 @@ static void __queue_work(struct workqueue_struct *wq, struct work_struct *work)
 int queue_work(struct workqueue_struct *wq, struct work_struct *work)
 {
     /*XXX*/
-    int ret = 0; 
+    int ret = 0;
 
-    if(!fake_test_and_set_bit(WORK_STRUCT_PENDING_BIT, work_data_bits(work))) {
+    if (!fake_test_and_set_bit(WORK_STRUCT_PENDING_BIT, work_data_bits(work))) {
         __queue_work(wq, work);
         ret = 1;
     }
@@ -496,7 +496,7 @@ static void delayed_work_timer_fn(unsigned long __data)
  * Returns 0 if @work was already on a queue, non-zero otherwise.
  */
 int queue_delayed_work(struct workqueue_struct *wq,
-        struct delayed_work *dwork, unsigned long delay)
+                       struct delayed_work *dwork, unsigned long delay)
 {
     struct timer_list *timer = &dwork->timer;
     int now;
@@ -576,7 +576,7 @@ static bool may_start_working(struct global_wq *gwq)
 static bool keep_working(struct global_wq *gwq)
 {
     return !list_empty(&gwq->worklist) &&
-        (gwq->nr_running <= 1 || (gwq->flags & GWQ_HIGHPRI_PENDING));
+           (gwq->nr_running <= 1 || (gwq->flags & GWQ_HIGHPRI_PENDING));
 }
 
 
@@ -618,8 +618,8 @@ static void worker_enter_idle(struct worker *worker)
     struct global_wq *gwq = worker->gwq;
 
     BUG_ON(worker->flags & WORKER_IDLE);
-    BUG_ON(!list_empty(&worker->entry) && 
-            (worker->hentry.next || worker->hentry.pprev));
+    BUG_ON(!list_empty(&worker->entry) &&
+           (worker->hentry.next || worker->hentry.pprev));
 
     /* can't use worker_set_flags(), also called from start_worker() */
     worker->flags |= WORKER_IDLE;
@@ -631,7 +631,7 @@ static void worker_enter_idle(struct worker *worker)
 
     if (too_many_workers(gwq) && !timer_pending(&gwq->idle_timer))
         mod_timer(&gwq->idle_timer,
-                curr_time_ms() + IDLE_WORKER_TIMEOUT);
+                  curr_time_ms() + IDLE_WORKER_TIMEOUT);
 }
 
 /**
@@ -659,7 +659,7 @@ static struct worker *alloc_worker(void)
     struct worker *worker;
 
     worker = malloc(sizeof(*worker));
-    if (!worker) 
+    if (!worker)
         return NULL;
 
     INIT_LIST_HEAD(&worker->entry);
@@ -701,7 +701,7 @@ static struct worker *create_worker(struct global_wq *gwq)
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     ret = pthread_create(&worker->task, &attr, worker_thread, worker);
-    if(ret)
+    if (ret)
         goto create_fail;
 
     return worker;
@@ -745,7 +745,7 @@ static void destroy_worker(struct worker *worker)
     //	int id = worker->id;
 
     /* sanity check frenzy */
-    if(worker->current_work)
+    if (worker->current_work)
         return;
     /*XXX*/ //BUG_ON(!list_empty(&worker->scheduled));
 
@@ -916,7 +916,7 @@ recheck:
     do {
         struct work_struct *work =
             list_first_entry(&gwq->worklist,
-                    struct work_struct, entry);
+                             struct work_struct, entry);
         struct workqueue_struct *wq = get_work_wq(work);
 
         bool cpu_intensive = wq->flags & WQ_CPU_INTENSIVE;
@@ -989,10 +989,10 @@ struct workqueue_struct *alloc_workqueue(int max_active, unsigned int flags)
     struct workqueue_struct *wq;
 
     wq = (struct workqueue_struct *)malloc(sizeof(*wq));
-    if(!wq)
+    if (!wq)
         return NULL;
 
-    max_active = max_active ?: WQ_DFL_ACTIVE;
+    max_active = max_active ? : WQ_DFL_ACTIVE;
 
     wq->flags = flags;
     wq->max_active = max_active;
@@ -1030,9 +1030,9 @@ reflush:
 
     if (!drained) {
         if (++flush_cnt == 10 ||
-                (flush_cnt % 100 == 0 && flush_cnt <= 1000))
+            (flush_cnt % 100 == 0 && flush_cnt <= 1000))
             logw("workqueue: flush on destruction isn't complete"
-                    " after %u tries\n", flush_cnt);
+                 " after %u tries\n", flush_cnt);
         goto reflush;
     }
 
@@ -1081,7 +1081,7 @@ int init_workqueues(void)
     struct worker *worker;
     struct global_wq *gwq = get_global_wq();
 
-    pthread_mutex_init(&gwq->lock, NULL);	
+    pthread_mutex_init(&gwq->lock, NULL);
 
     INIT_LIST_HEAD(&gwq->worklist);
     gwq->flags = 0;

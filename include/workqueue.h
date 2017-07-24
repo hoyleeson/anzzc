@@ -1,6 +1,6 @@
 /*
  * include/workqueue.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -30,8 +30,8 @@ typedef void (*work_func_t)(struct work_struct *work);
 
 
 enum {
-	WORK_STRUCT_PENDING_BIT = 0,    /* work item is pending execution */
-	WORK_STRUCT_DELAYED_BIT = 1,    /* work item is delayed */
+    WORK_STRUCT_PENDING_BIT = 0,    /* work item is pending execution */
+    WORK_STRUCT_DELAYED_BIT = 1,    /* work item is delayed */
 
     WORK_STRUCT_PENDING = 1 << WORK_STRUCT_PENDING_BIT,
     WORK_STRUCT_DELAYED = 1 << WORK_STRUCT_DELAYED_BIT,
@@ -46,19 +46,19 @@ enum {
 };
 
 struct work_struct {
-	struct list_head entry;
-	work_func_t func;
-	fake_atomic_long_t data;
+    struct list_head entry;
+    work_func_t func;
+    fake_atomic_long_t data;
 };
 
 struct delayed_work {
-	struct work_struct work;
-	struct timer_list timer;
+    struct work_struct work;
+    struct timer_list timer;
 };
 
 static inline struct delayed_work *to_delayed_work(struct work_struct *work)
 {
-	return container_of(work, struct delayed_work, work);
+    return container_of(work, struct delayed_work, work);
 }
 
 #define __WORK_INITIALIZER(n, f) {              \
@@ -111,7 +111,7 @@ static inline struct delayed_work *to_delayed_work(struct work_struct *work)
  * @work: The work item in question
  */
 #define work_pending(work) \
-    (!!(fake_atomic_long_get(&(work)->data) & WORK_STRUCT_PENDING_BIT)) 
+    (!!(fake_atomic_long_get(&(work)->data) & WORK_STRUCT_PENDING_BIT))
 
 /**
  * delayed_work_pending - Find out whether a delayable work item is currently
@@ -163,7 +163,7 @@ extern "C" {
 
 int queue_work(struct workqueue_struct *wq, struct work_struct *work);
 int queue_delayed_work(struct workqueue_struct *wq,
-             struct delayed_work *work, unsigned long delay);
+                       struct delayed_work *work, unsigned long delay);
 
 
 void flush_workqueue(struct workqueue_struct *wq);
@@ -183,7 +183,7 @@ bool flush_delayed_work_sync(struct delayed_work *work);
 bool cancel_delayed_work_sync(struct delayed_work *dwork);
 
 void workqueue_set_max_active(struct workqueue_struct *wq,
-                      int max_active);
+                              int max_active);
 bool workqueue_congested(unsigned int cpu, struct workqueue_struct *wq);
 unsigned int work_busy(struct work_struct *work);
 

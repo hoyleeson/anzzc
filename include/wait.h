@@ -1,6 +1,6 @@
 /*
  * include/wait.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -29,16 +29,16 @@ int default_wake_function(wait_queue_t *wait, int flags);
 
 
 struct __wait_queue {
-	unsigned int flags;
+    unsigned int flags;
 #define WQ_FLAG_EXCLUSIVE	0x01
-	struct completion done;
-	wait_queue_func_t func;
-	struct list_head task_list;
+    struct completion done;
+    wait_queue_func_t func;
+    struct list_head task_list;
 };
 
 struct __wait_queue_head {
-	pthread_mutex_t lock;
-	struct list_head task_list;
+    pthread_mutex_t lock;
+    struct list_head task_list;
 };
 
 typedef struct __wait_queue_head wait_queue_head_t;
@@ -64,7 +64,7 @@ typedef struct __wait_queue_head wait_queue_head_t;
 
 static inline int waitqueue_active(wait_queue_head_t *q)
 {
-	return !list_empty(&q->task_list);
+    return !list_empty(&q->task_list);
 }
 
 void init_waitqueue_head(wait_queue_head_t *q);
@@ -76,36 +76,36 @@ void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait);
 
 static inline void __add_wait_queue(wait_queue_head_t *head, wait_queue_t *new)
 {
-	list_add(&new->task_list, &head->task_list);
+    list_add(&new->task_list, &head->task_list);
 }
 
 /*
  * Used for wake-one threads:
  */
 static inline void __add_wait_queue_exclusive(wait_queue_head_t *q,
-					      wait_queue_t *wait)
+        wait_queue_t *wait)
 {
-	wait->flags |= WQ_FLAG_EXCLUSIVE;
-	__add_wait_queue(q, wait);
+    wait->flags |= WQ_FLAG_EXCLUSIVE;
+    __add_wait_queue(q, wait);
 }
 
 static inline void __add_wait_queue_tail(wait_queue_head_t *head,
-					 wait_queue_t *new)
+        wait_queue_t *new)
 {
-	list_add_tail(&new->task_list, &head->task_list);
+    list_add_tail(&new->task_list, &head->task_list);
 }
 
 static inline void __add_wait_queue_tail_exclusive(wait_queue_head_t *q,
-					      wait_queue_t *wait)
+        wait_queue_t *wait)
 {
-	wait->flags |= WQ_FLAG_EXCLUSIVE;
-	__add_wait_queue_tail(q, wait);
+    wait->flags |= WQ_FLAG_EXCLUSIVE;
+    __add_wait_queue_tail(q, wait);
 }
 
 static inline void __remove_wait_queue(wait_queue_head_t *head,
-							wait_queue_t *old)
+                                       wait_queue_t *old)
 {
-	list_del(&old->task_list);
+    list_del(&old->task_list);
 }
 
 void __wake_up(wait_queue_head_t *q, int nr);

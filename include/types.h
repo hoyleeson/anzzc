@@ -1,6 +1,6 @@
 /*
  * include/types.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -42,17 +42,17 @@ typedef unsigned long long u64;
 typedef int bool;
 
 enum {
-	FALSE = 0,
-	TRUE  = 1
+    FALSE = 0,
+    TRUE  = 1
 };
 
 enum {
-	false	= 0,
-	true	= 1
+    false	= 0,
+    true	= 1
 };
 #endif
 
-#define _out 
+#define _out
 
 #undef offsetof
 #ifdef __compiler_offsetof

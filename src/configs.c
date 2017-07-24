@@ -1,6 +1,6 @@
 /*
  * src/configs.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -92,10 +92,14 @@ struct configs_module _configs;
 
 
 static void parse_line_no_op(struct parse_state *state, int nargs, char **args);
-static void parse_line_config(struct parse_state* state, int nargs, char **args);
-static void parse_line_command(struct parse_state* state, int nargs, char **args);
-static void parse_line_daemon(struct parse_state* state, int nargs, char **args);
-static void parse_line_import(struct parse_state *state, int nargs, char **args);
+static void parse_line_config(struct parse_state *state, int nargs,
+                              char **args);
+static void parse_line_command(struct parse_state *state, int nargs,
+                               char **args);
+static void parse_line_daemon(struct parse_state *state, int nargs,
+                              char **args);
+static void parse_line_import(struct parse_state *state, int nargs,
+                              char **args);
 
 #include "keywords.h"
 
@@ -107,7 +111,7 @@ struct {
     const char *name;
     union {
         int (*func)(int nargs, char **args);
-        void (*parse)(struct parse_state* state, int nargs, char **args);
+        void (*parse)(struct parse_state *state, int nargs, char **args);
     };
     unsigned char nargs;
     unsigned char flags;
@@ -134,8 +138,8 @@ struct {
 int lookup_keyword(const char *s)
 {
     int i;
-    for(i=0; i<KEYWORD_COUNT; i++) {
-        if(!strcmp(s, keyword_info[i].name)) {
+    for (i = 0; i < KEYWORD_COUNT; i++) {
+        if (!strcmp(s, keyword_info[i].name)) {
             return keyword_info[i].key;
         }
     }
@@ -157,25 +161,25 @@ static int valid_name(const char *name)
     return 1;
 }
 
-static struct config *config_find_by_key(const char *key) 
+static struct config *config_find_by_key(const char *key)
 {
     struct config *conf;
     struct configs_module *configs = &_configs;
 
     list_for_each_entry(conf, &configs->configs_list, node) {
-        if(!strcmp(conf->key, key))
+        if (!strcmp(conf->key, key))
             return conf;
     }
     return NULL;
 }
 
-static struct daemon *daemon_find_by_name(const char *name) 
+static struct daemon *daemon_find_by_name(const char *name)
 {
     struct daemon *dm;
     struct configs_module *configs = &_configs;
 
     list_for_each_entry(dm, &configs->daemons_list, node) {
-        if(!strcmp(dm->name, name))
+        if (!strcmp(dm->name, name))
             return dm;
     }
     return NULL;
@@ -186,7 +190,7 @@ static void parse_line_no_op(struct parse_state *state, int nargs, char **args)
 {
 }
 
-static void parse_line_config(struct parse_state* state, int nargs, char **args)
+static void parse_line_config(struct parse_state *state, int nargs, char **args)
 {
     struct config *conf;
     struct configs_module *configs = state->context;
@@ -204,7 +208,7 @@ static void parse_line_config(struct parse_state* state, int nargs, char **args)
 }
 
 
-static void parse_line_daemon(struct parse_state* state, int nargs, char **args)
+static void parse_line_daemon(struct parse_state *state, int nargs, char **args)
 {
     struct daemon *dm;
     struct configs_module *configs = state->context;
@@ -225,19 +229,20 @@ static void parse_line_daemon(struct parse_state* state, int nargs, char **args)
     }
 
     nargs -= 1;
-    dm = calloc(1, sizeof(*dm) + sizeof(char*) * nargs);
+    dm = calloc(1, sizeof(*dm) + sizeof(char *) * nargs);
     if (!dm) {
         parse_error(state, "out of memory\n");
         return;
     }
     dm->name = args[0];
-    memcpy(dm->args, args + 1, sizeof(char*) * nargs);
+    memcpy(dm->args, args + 1, sizeof(char *) * nargs);
     dm->args[nargs] = 0;
     dm->nargs = nargs;
     list_add_tail(&dm->node, &configs->daemons_list);
 }
 
-static void parse_line_command(struct parse_state* state, int nargs, char **args)
+static void parse_line_command(struct parse_state *state, int nargs,
+                               char **args)
 {
     struct command *cmd;
     struct configs_module *configs = state->context;
@@ -256,15 +261,15 @@ static void parse_line_command(struct parse_state* state, int nargs, char **args
     n = kw_nargs(kw);
     if (nargs < n) {
         parse_error(state, "%s requires %d %s\n", args[0], n - 1,
-                n > 2 ? "arguments" : "argument");
+                    n > 2 ? "arguments" : "argument");
         return;
     }
 
-    cmd = malloc(sizeof(*cmd) + sizeof(char*) * nargs);
+    cmd = malloc(sizeof(*cmd) + sizeof(char *) * nargs);
     cmd->name = args[0];
     cmd->func = kw_func(kw);
     cmd->nargs = nargs;
-    memcpy(cmd->args, args, sizeof(char*) * nargs);
+    memcpy(cmd->args, args, sizeof(char *) * nargs);
     list_add_tail(&cmd->node, &configs->commands_list);
 }
 
@@ -284,9 +289,11 @@ static void parse_line_import(struct parse_state *state, int nargs, char **args)
     logi("found import '%s', adding to import list\n", import->filename);
 }
 
-static int init_parse_config_file(struct configs_module *configs, const char *fname);
+static int init_parse_config_file(struct configs_module *configs,
+                                  const char *fname);
 
-static void parse_configs(struct configs_module *configs, const char *fn, char *s)
+static void parse_configs(struct configs_module *configs, const char *fn,
+                          char *s)
 {
     struct import *import, *tmp;
     struct parse_state state;
@@ -343,7 +350,8 @@ parser_done:
     }
 }
 
-static int init_parse_config_file(struct configs_module *configs, const char *fname)
+static int init_parse_config_file(struct configs_module *configs,
+                                  const char *fname)
 {
     char *data;
 
@@ -356,7 +364,7 @@ static int init_parse_config_file(struct configs_module *configs, const char *fn
 }
 
 
-static void daemon_start(struct daemon *dm) 
+static void daemon_start(struct daemon *dm)
 {
     struct stat s;
     pid_t pid;
@@ -365,7 +373,8 @@ static void daemon_start(struct daemon *dm)
      * state and immediately takes it out of the restarting
      * state if it was in there
      */
-    dm->flags &= (~(DAEMON_DISABLED|DAEMON_RESTARTING|DAEMON_RESET|DAEMON_RESTART));
+    dm->flags &= (~(DAEMON_DISABLED | DAEMON_RESTARTING | DAEMON_RESET |
+                    DAEMON_RESTART));
     dm->time_started = 0;
 
     /* running processes require no additional work -- if
@@ -387,7 +396,7 @@ static void daemon_start(struct daemon *dm)
 
     if (pid == 0) {
         char *environ[] = { NULL };
-        if(execve(dm->args[0], (char**) dm->args, (char**) environ) < 0) {
+        if (execve(dm->args[0], (char **) dm->args, (char **) environ) < 0) {
             loge("cannot execve('%s'): %s\n", dm->args[0], strerror(errno));
         }
 
@@ -403,7 +412,7 @@ static void daemon_start(struct daemon *dm)
     dm->flags |= DAEMON_RUNNING;
 }
 
-void exec_daemons(void) 
+void exec_daemons(void)
 {
     struct daemon *dm;
     struct configs_module *configs = &_configs;
@@ -413,13 +422,13 @@ void exec_daemons(void)
     }
 }
 
-void exec_commands(void) 
+void exec_commands(void)
 {
     struct command *cmd;
     struct configs_module *configs = &_configs;
 
     list_for_each_entry(cmd, &configs->commands_list, node) {
-        if(cmd->func)
+        if (cmd->func)
             cmd->func(cmd->nargs, cmd->args);
     }
 }
@@ -440,17 +449,17 @@ int init_configs(const char *fname)
     return 0;
 }
 
-const char *config_val_find_by_key(const char *key) 
+const char *config_val_find_by_key(const char *key)
 {
     struct config *conf;
 
     conf = config_find_by_key(key);
-    if(!conf)
+    if (!conf)
         return NULL;
     return conf->value;
 }
 
-static void dump(void) 
+static void dump(void)
 {
     struct config *config;
     struct daemon *daemon;
@@ -466,7 +475,7 @@ static void dump(void)
     list_for_each_entry(daemon, &configs->daemons_list, node) {
         int i;
         printf("name:%s args:", daemon->name);
-        for(i=0; i<daemon->nargs; i++) {
+        for (i = 0; i < daemon->nargs; i++) {
             printf("%s ", daemon->args[i]);
         }
         printf("\n");
@@ -476,7 +485,7 @@ static void dump(void)
     list_for_each_entry(command, &configs->commands_list, node) {
         int i;
         printf("name:%s args:", command->name);
-        for(i=0; i<command->nargs; i++) {
+        for (i = 0; i < command->nargs; i++) {
             printf("%s ", command->args[i]);
         }
         printf("\n");

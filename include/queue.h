@@ -1,6 +1,6 @@
 /*
  * include/queue.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -26,11 +26,11 @@
 #define QUEUE_BLOCK 		(1)
 
 struct queue {
-	struct list_head 	list;
-	pthread_mutex_t 	lock;
-	pthread_cond_t 		cond;
-	size_t 	count;
-	int 	flags;
+    struct list_head 	list;
+    pthread_mutex_t 	lock;
+    pthread_cond_t 		cond;
+    size_t 	count;
+    int 	flags;
 };
 
 #ifdef __cplusplus

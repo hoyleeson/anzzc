@@ -42,4 +42,4 @@ int socket_inaddr_any_server(int port, int type);
 }
 #endif
 
-#endif /* __CUTILS_SOCKETS_H */ 
+#endif /* __CUTILS_SOCKETS_H */

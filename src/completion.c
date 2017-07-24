@@ -1,6 +1,6 @@
 /*
  * src/completion.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -35,7 +35,7 @@
 void wait_for_completion(struct completion *x)
 {
     pthread_mutex_lock(&x->lock);
-    while(!x->done) {
+    while (!x->done) {
         pthread_cond_wait(&x->cond, &x->lock);
     }
     x->done--;
@@ -52,7 +52,8 @@ void wait_for_completion(struct completion *x)
  * specified timeout to expire. The timeout is in jiffies. It is not
  * interruptible.
  */
-unsigned long wait_for_completion_timeout(struct completion *x, unsigned long ms)
+unsigned long wait_for_completion_timeout(struct completion *x,
+        unsigned long ms)
 {
     int ret;
     struct timeval now;
@@ -68,9 +69,9 @@ unsigned long wait_for_completion_timeout(struct completion *x, unsigned long ms
 
     ret = pthread_cond_timedwait(&x->cond, &x->lock, &timeout);
 
-    if(ret == ETIMEDOUT) {
+    if (ret == ETIMEDOUT) {
         logi("wait for completion timeout!\n");
-    } else if(ret == 0) {
+    } else if (ret == 0) {
         x->done--;
         logi("receive the completion.\n");
     } else {
@@ -156,10 +157,10 @@ void complete(struct completion *x)
  * It may be assumed that this function implies a write memory barrier before
  * changing the task state if and only if any tasks are woken up.
  */
-void complete_all(struct completion *x) 
+void complete_all(struct completion *x)
 {
     pthread_mutex_lock(&x->lock);
-    x->done += UINT_MAX/2;
+    x->done += UINT_MAX / 2;
     pthread_cond_broadcast(&x->cond);
     pthread_mutex_unlock(&x->lock);
 }

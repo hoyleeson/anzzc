@@ -1,6 +1,6 @@
 /*
  * src/mempool.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -37,8 +37,7 @@ struct mempool {
 };
 
 
-struct block
-{
+struct block {
     struct list_head free;
 };
 
@@ -58,15 +57,15 @@ mempool_t *mempool_create(int block_size, int init_count, int limited)
     pool->used = pool->dynamic_used = 0;
     pool->limited = limited;
 
-    if(init_count > 0) {
+    if (init_count > 0) {
         pool->buf = calloc(init_count, block_size);
-        if(!pool->buf)
+        if (!pool->buf)
             fatal("alloc memory fail.\n");
 
         struct block *b;
         int i;
 
-        for(i=0 ; i<init_count ; i++) {
+        for (i = 0 ; i < init_count ; i++) {
             b = (struct block *) (pool->buf + i * block_size);
             list_add(&b->free, &pool->free_list);
         }
@@ -98,20 +97,20 @@ void *mempool_alloc(mempool_t *pool)
 
     pthread_mutex_lock(&pool->lock);
 
-    if (!list_empty(&pool->free_list)) 
+    if (!list_empty(&pool->free_list))
         l = pool->free_list.next;
-    else if(!list_empty(&pool->dynamic_free_list)) {
+    else if (!list_empty(&pool->dynamic_free_list)) {
         l = pool->dynamic_free_list.next;
         pool->dynamic_used++;
     }
 
-    if(l) {
+    if (l) {
         list_del(l);
         b = list_entry(l, struct block, free);
     }
 
-    if(unlikely(!b)) {
-        if(pool->limited) {
+    if (unlikely(!b)) {
+        if (pool->limited) {
             pthread_mutex_unlock(&pool->lock);
             return NULL;
         } else {
@@ -119,7 +118,7 @@ void *mempool_alloc(mempool_t *pool)
             b = (struct block *) malloc(pool->bsize);
             pool->dynamic_used++;
             c = ++pool->count;
-            if( (c & ((1<<10)-1)) == 0 ) {
+            if ( (c & ((1 << 10) - 1)) == 0 ) {
                 logw("hitting %d blocks\n", c);
             }
         }
@@ -142,23 +141,24 @@ void *mempool_zalloc(mempool_t *pool)
     return ptr;
 }
 
-static inline bool is_dynamic_mem(mempool_t *pool, void *buf) {
-    return !(((buf - (void*)pool->buf) >= 0) &&
-            ((((void*)pool->buf + pool->bsize*pool->init_count) - buf) > 0));
+static inline bool is_dynamic_mem(mempool_t *pool, void *buf)
+{
+    return !(((buf - (void *)pool->buf) >= 0) &&
+             ((((void *)pool->buf + pool->bsize * pool->init_count) - buf) > 0));
 }
 
-static bool mempool_needed_shrink(mempool_t *pool) 
+static bool mempool_needed_shrink(mempool_t *pool)
 {
     int free;
     int dynamic_free;
 
     free = pool->count - pool->used;
     dynamic_free = (pool->count - pool->init_count) - pool->dynamic_used;
-    return !!((free > pool->init_count * 3) && 
-            (dynamic_free > pool->init_count));
+    return !!((free > pool->init_count * 3) &&
+              (dynamic_free > pool->init_count));
 }
 
-void mempool_shrink(mempool_t *pool) 
+void mempool_shrink(mempool_t *pool)
 {
     struct list_head *l, *tmp;
     struct block *b;
@@ -171,7 +171,7 @@ void mempool_shrink(mempool_t *pool)
     dynamic_free = (pool->count - pool->init_count) - pool->dynamic_used;
     shrink = min(shrink, dynamic_free);
 
-    if(shrink <= 0) {
+    if (shrink <= 0) {
         pthread_mutex_unlock(&pool->lock);
         return;
     }
@@ -183,7 +183,7 @@ void mempool_shrink(mempool_t *pool)
         free(b);
         pool->count--;
 
-        if(--shrink == 0)
+        if (--shrink == 0)
             break;
     }
 
@@ -196,7 +196,7 @@ void mempool_free(mempool_t *pool, void *buf)
 
     pthread_mutex_lock(&pool->lock);
 
-    if(is_dynamic_mem(pool, buf)) {
+    if (is_dynamic_mem(pool, buf)) {
         list_add_tail(&b->free, &pool->dynamic_free_list);
         pool->dynamic_used--;
     } else {
@@ -207,7 +207,7 @@ void mempool_free(mempool_t *pool, void *buf)
 
     pthread_mutex_unlock(&pool->lock);
 
-    if(mempool_needed_shrink(pool)) 
+    if (mempool_needed_shrink(pool))
         mempool_shrink(pool);
 }
 
@@ -229,10 +229,10 @@ int mem_cache_init(void)
 {
     struct cache_sizes *sizes = cachesizes;
 
-    while(sizes->cs_size != ULONG_MAX) {
+    while (sizes->cs_size != ULONG_MAX) {
         int size = sizeof(struct mem_head) + sizes->cs_size;
         sizes->cs_cachep = mempool_create(size, sizes->cs_count, IS_LIMIT);
-        if(!sizes->cs_cachep) {
+        if (!sizes->cs_cachep) {
             goto mem_fail;
         }
         sizes++;
@@ -243,48 +243,49 @@ mem_fail:
     do {
         sizes--;
         mempool_release(sizes->cs_cachep);
-    } while(sizes != cachesizes);
+    } while (sizes != cachesizes);
     return -ENOMEM;
 }
 
-int size_cmp(const void *key, const void *elt) 
+int size_cmp(const void *key, const void *elt)
 {
     const struct cache_sizes *a = key;
     const struct cache_sizes *b = elt;
 
-    return a->cs_size - b->cs_size; 
+    return a->cs_size - b->cs_size;
 }
 
-int size_to_index(int size) {
+int size_to_index(int size)
+{
     struct cache_sizes *node;
     struct cache_sizes key;
 
     key.cs_size = size;
     node = bsearch_edge(&key, cachesizes, ARRAY_SIZE(cachesizes),
-            sizeof(struct cache_sizes), BSEARCH_MATCH_UP, size_cmp);
-    if(node)
+                        sizeof(struct cache_sizes), BSEARCH_MATCH_UP, size_cmp);
+    if (node)
         return node->cs_size;
     return -EINVAL;
 }
 
-void *__mm_alloc(int size, int node) 
+void *__mm_alloc(int size, int node)
 {
     mempool_t *pool;
     struct mem_item *item;
 
-    if(node < 0) {
+    if (node < 0) {
         node = size_to_index(size);
-        if(node < 0 || node >= ARRAY_SIZE(cachesizes))
+        if (node < 0 || node >= ARRAY_SIZE(cachesizes))
             return NULL;
     }
 
     pool = cachesizes[node].cs_cachep;
-    item = (struct mem_item*)mempool_alloc(pool);
+    item = (struct mem_item *)mempool_alloc(pool);
     item->head.size = size;
     return item->data;
 }
 
-void __mm_free(void *ptr, int node) 
+void __mm_free(void *ptr, int node)
 {
     int size;
     struct mem_item *item;
@@ -296,9 +297,9 @@ void __mm_free(void *ptr, int node)
     if (!size)
         return;
 
-    if(node < 0) {
+    if (node < 0) {
         node = size_to_index(size);
-        if(node < 0 || node >= ARRAY_SIZE(cachesizes))
+        if (node < 0 || node >= ARRAY_SIZE(cachesizes))
             return;
     }
 

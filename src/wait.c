@@ -1,6 +1,6 @@
 /*
  * src/wait.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -16,8 +16,8 @@
 
 void init_waitqueue_head(wait_queue_head_t *q)
 {
-	pthread_mutex_init(&q->lock, NULL);
-	INIT_LIST_HEAD(&q->task_list);
+    pthread_mutex_init(&q->lock, NULL);
+    INIT_LIST_HEAD(&q->task_list);
 }
 
 void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
@@ -61,7 +61,8 @@ int default_wake_function(wait_queue_t *curr, int wake_flags)
     return 0;
 }
 
-static void __wake_up_common(wait_queue_head_t *q, int nr_exclusive, int wake_flags)
+static void __wake_up_common(wait_queue_head_t *q, int nr_exclusive,
+                             int wake_flags)
 {
     wait_queue_t *curr, *next;
 
@@ -69,7 +70,7 @@ static void __wake_up_common(wait_queue_head_t *q, int nr_exclusive, int wake_fl
         unsigned flags = curr->flags;
 
         if (curr->func(curr, wake_flags) &&
-                (flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
+            (flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
             break;
     }
 }
@@ -123,7 +124,7 @@ void prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait)
 void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
 {
     pthread_mutex_lock(&q->lock);
-    if (!list_empty(&wait->task_list)) 
+    if (!list_empty(&wait->task_list))
         list_del_init(&wait->task_list);
 
     pthread_mutex_unlock(&q->lock);

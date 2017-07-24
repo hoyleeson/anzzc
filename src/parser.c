@@ -1,6 +1,6 @@
 /*
  * src/parser.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -64,7 +64,7 @@ int next_token(struct parse_state *state)
             case '#':
                 while (*x && (*x != '\n')) x++;
                 if (*x == '\n') {
-                    state->ptr = x+1;
+                    state->ptr = x + 1;
                     return T_NEWLINE;
                 } else {
                     state->ptr = x;
@@ -140,7 +140,7 @@ textresume:
                         state->line++;
                         x++;
                         /* eat any extra whitespace */
-                        while((*x == ' ') || (*x == '\t')) x++;
+                        while ((*x == ' ') || (*x == '\t')) x++;
                         continue;
                     default:
                         /* unknown escape -- just copy */

@@ -1,6 +1,6 @@
 /*
  * src/netsock.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -24,9 +24,9 @@
 #include <include/netsock.h>
 
 
-struct netsock_operations* netsock_ops_list[NETSOCK_MAX] = {
-	[NETSOCK_STREAM] = &stream_ops,
-	[NETSOCK_DGRAM] = &dgram_ops,
+struct netsock_operations *netsock_ops_list[NETSOCK_MAX] = {
+    [NETSOCK_STREAM] = &stream_ops,
+    [NETSOCK_DGRAM] = &dgram_ops,
 };
 
 
@@ -37,28 +37,28 @@ struct netsock_operations* netsock_ops_list[NETSOCK_MAX] = {
 *
 *return: indentify the handle to the library
 */
-void* netsock_init(struct netsock_args* args)
+void *netsock_init(struct netsock_args *args)
 {
-	struct netsock* nsock;
+    struct netsock *nsock;
 
-	if(!args) {
-		loge("please input the correct parameters.\n");
-		return NULL;
-	}
+    if (!args) {
+        loge("please input the correct parameters.\n");
+        return NULL;
+    }
 
-	nsock = (struct netsock*)malloc(sizeof(struct netsock));
-	if(!nsock)
-		fatal("alloc the memory fail.\n");
-	
-	pthread_mutex_init(&nsock->r_lock, NULL);	
-	pthread_mutex_init(&nsock->s_lock, NULL);
+    nsock = (struct netsock *)malloc(sizeof(struct netsock));
+    if (!nsock)
+        fatal("alloc the memory fail.\n");
 
-	nsock->args = *args;
-	nsock->netsock_ops = netsock_ops_list[args->type];
+    pthread_mutex_init(&nsock->r_lock, NULL);
+    pthread_mutex_init(&nsock->s_lock, NULL);
 
-	nsock->netsock_ops->init(nsock);
+    nsock->args = *args;
+    nsock->netsock_ops = netsock_ops_list[args->type];
 
-	return nsock;
+    nsock->netsock_ops->init(nsock);
+
+    return nsock;
 }
 
 /*
@@ -71,24 +71,24 @@ void* netsock_init(struct netsock_args* args)
 *
 *return: receive data len;<0: error.
 */
-int netsock_recv(void* handle, _out void* buf, int len)
+int netsock_recv(void *handle, _out void *buf, int len)
 {
-	int ret;
-	struct netsock* nsock;
+    int ret;
+    struct netsock *nsock;
 
-	if(!handle)
-		return -EINVAL;
+    if (!handle)
+        return -EINVAL;
 
-	nsock = (struct netsock*)handle;
+    nsock = (struct netsock *)handle;
 
-	
-	pthread_mutex_lock(&nsock->r_lock);
 
-	ret = nsock->netsock_ops->recv(nsock, buf, len);
-	
-	pthread_mutex_unlock(&nsock->r_lock);
+    pthread_mutex_lock(&nsock->r_lock);
 
-	return ret;
+    ret = nsock->netsock_ops->recv(nsock, buf, len);
+
+    pthread_mutex_unlock(&nsock->r_lock);
+
+    return ret;
 }
 
 
@@ -103,23 +103,24 @@ int netsock_recv(void* handle, _out void* buf, int len)
 *
 *return: receive data len;=0:timeout;<0: error.
 */
-int netsock_recv_timeout(void* handle, _out void* buf, int len, unsigned long timeout)
+int netsock_recv_timeout(void *handle, _out void *buf, int len,
+                         unsigned long timeout)
 {
-	int ret;
-	struct netsock* nsock;
+    int ret;
+    struct netsock *nsock;
 
-	if(!handle)
-		return -EINVAL;
+    if (!handle)
+        return -EINVAL;
 
-	nsock = (struct netsock*)handle;
-	
-	pthread_mutex_lock(&nsock->r_lock);
+    nsock = (struct netsock *)handle;
 
-	ret = nsock->netsock_ops->recv_timeout(nsock, buf, len, timeout);
+    pthread_mutex_lock(&nsock->r_lock);
 
-	pthread_mutex_unlock(&nsock->r_lock);
+    ret = nsock->netsock_ops->recv_timeout(nsock, buf, len, timeout);
 
-	return ret;
+    pthread_mutex_unlock(&nsock->r_lock);
+
+    return ret;
 }
 
 
@@ -134,42 +135,42 @@ int netsock_recv_timeout(void* handle, _out void* buf, int len, unsigned long ti
 *
 *return: 0:send data success, -1: send data error.
 */
-int netsock_send(void* handle, void* buf, int len)
+int netsock_send(void *handle, void *buf, int len)
 {
-	int ret;
-	struct netsock* nsock;
+    int ret;
+    struct netsock *nsock;
 
-	if(!handle)
-		return -EINVAL;
+    if (!handle)
+        return -EINVAL;
 
-	nsock = (struct netsock*)handle;
-	
-	pthread_mutex_lock(&nsock->s_lock);
+    nsock = (struct netsock *)handle;
 
-	ret = nsock->netsock_ops->send(nsock, buf, len);
-	
-	pthread_mutex_unlock(&nsock->s_lock);
+    pthread_mutex_lock(&nsock->s_lock);
 
-	return ret;
+    ret = nsock->netsock_ops->send(nsock, buf, len);
+
+    pthread_mutex_unlock(&nsock->s_lock);
+
+    return ret;
 }
 
 
-int netsock_send_by_session(void* handle, void* session, void* buf, int len)
+int netsock_send_by_session(void *handle, void *session, void *buf, int len)
 {
-	int ret;
-	struct netsock* nsock;
+    int ret;
+    struct netsock *nsock;
 
-	if((!handle) || (!session))
-		return -EINVAL;
+    if ((!handle) || (!session))
+        return -EINVAL;
 
-	nsock = (struct netsock*)handle;
-	
-	pthread_mutex_lock(&nsock->s_lock);
-	
-	ret = nsock->netsock_ops->send_by_session(nsock, session, buf, len);	
+    nsock = (struct netsock *)handle;
 
-	pthread_mutex_unlock(&nsock->s_lock);
-	return ret;
+    pthread_mutex_lock(&nsock->s_lock);
+
+    ret = nsock->netsock_ops->send_by_session(nsock, session, buf, len);
+
+    pthread_mutex_unlock(&nsock->s_lock);
+    return ret;
 }
 
 /*
@@ -180,32 +181,32 @@ int netsock_send_by_session(void* handle, void* session, void* buf, int len)
 *
 *return:void
 */
-int netsock_reinit(void* handle, struct netsock_args* args)
+int netsock_reinit(void *handle, struct netsock_args *args)
 {
-	int ret;
-    struct netsock* nsock;
+    int ret;
+    struct netsock *nsock;
 
-	if(!handle || !args) {
-		loge("please input the correct parameters.\n");
-		return -EINVAL;
-	}
-    
-	nsock = (struct netsock*)handle;
-    
-    pthread_mutex_lock(&nsock->s_lock);	
-	pthread_mutex_lock(&nsock->r_lock);
+    if (!handle || !args) {
+        loge("please input the correct parameters.\n");
+        return -EINVAL;
+    }
 
-	nsock->netsock_ops->release(nsock);
+    nsock = (struct netsock *)handle;
 
-	nsock->args = *args;
-	nsock->netsock_ops = netsock_ops_list[args->type];
+    pthread_mutex_lock(&nsock->s_lock);
+    pthread_mutex_lock(&nsock->r_lock);
 
-	ret = nsock->netsock_ops->init(nsock);
-	
-    pthread_mutex_unlock(&nsock->r_lock);    
+    nsock->netsock_ops->release(nsock);
+
+    nsock->args = *args;
+    nsock->netsock_ops = netsock_ops_list[args->type];
+
+    ret = nsock->netsock_ops->init(nsock);
+
+    pthread_mutex_unlock(&nsock->r_lock);
     pthread_mutex_unlock(&nsock->s_lock);
 
-	return ret;
+    return ret;
 }
 
 
@@ -217,24 +218,24 @@ int netsock_reinit(void* handle, struct netsock_args* args)
 *
 *return:void
 */
-void netsock_release(void* handle)
+void netsock_release(void *handle)
 {
-	struct netsock* nsock;
+    struct netsock *nsock;
 
-	if(!handle)
-		return;
+    if (!handle)
+        return;
 
-	nsock = (struct netsock*)handle;
-	
-    pthread_mutex_lock(&nsock->s_lock);	
-	pthread_mutex_lock(&nsock->r_lock);
-	
-	nsock->netsock_ops->release(nsock);
-	
-    pthread_mutex_unlock(&nsock->r_lock);    
+    nsock = (struct netsock *)handle;
+
+    pthread_mutex_lock(&nsock->s_lock);
+    pthread_mutex_lock(&nsock->r_lock);
+
+    nsock->netsock_ops->release(nsock);
+
+    pthread_mutex_unlock(&nsock->r_lock);
     pthread_mutex_unlock(&nsock->s_lock);
-	
-	free(handle);
+
+    free(handle);
 }
 
 

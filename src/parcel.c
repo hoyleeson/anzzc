@@ -1,6 +1,6 @@
 /*
  * src/parcel.c
- * 
+ *
  * 2016-07-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -34,56 +34,56 @@ void __parcel_init(struct parcel *par)
 
 int parcel_init(struct parcel *par)
 {
-	__parcel_init(par);
-	return 0;
+    __parcel_init(par);
+    return 0;
 }
 
 void parcel_release(struct parcel *par)
 {
-	if (par->data)
-		free((void*)par->data);
+    if (par->data)
+        free((void *)par->data);
 }
 
 /* reinitialize the parcel. */
 void parcel_clear(struct parcel *par)
 {
-	__parcel_init(par);
+    __parcel_init(par);
 }
 
 /* get parcel data. */
-const uint8_t* parcel_data(struct parcel *par)
+const uint8_t *parcel_data(struct parcel *par)
 {
-	return par->data;
+    return par->data;
 }
 
 /* get parcel data size. */
 size_t parcel_datasize(struct parcel *par)
 {
-	return (par->data_size > par->data_pos ? par->data_size : par->data_pos);
+    return (par->data_size > par->data_pos ? par->data_size : par->data_pos);
 }
 
 /* get parcel data position. */
 size_t parcel_data_position(struct parcel *par)
 {
-	return par->data_pos;
+    return par->data_pos;
 }
 
 /* get the parcel data capacity. */
 size_t parcel_data_capacity(struct parcel *par)
 {
-	return par->data_capacity;
+    return par->data_capacity;
 }
 
 static int parcel_restart_write(struct parcel *par, size_t desired)
 {
-    uint8_t* data = (uint8_t*)realloc(par->data, desired);
+    uint8_t *data = (uint8_t *)realloc(par->data, desired);
 
-    if(!data && desired > par->data_capacity) {
+    if (!data && desired > par->data_capacity) {
         par->error = -ENOMEM;
         return -ENOMEM;
     }
 
-    if(data) {
+    if (data) {
         par->data = data;
         par->data_capacity = desired;
     }
@@ -96,15 +96,15 @@ static int parcel_restart_write(struct parcel *par, size_t desired)
 /* if the data memory not enough, realloc memory. */
 static int parcel_continue_write(struct parcel *par, size_t desired)
 {
-    if(par->data) {
+    if (par->data) {
         // We own the data, so we can just do a realloc().
-        if(desired > par->data_capacity) {
-            uint8_t* data = (uint8_t*)realloc(par->data, desired);
+        if (desired > par->data_capacity) {
+            uint8_t *data = (uint8_t *)realloc(par->data, desired);
 
-            if(data) {
+            if (data) {
                 par->data = data;
                 par->data_capacity = desired;
-            } else if(desired > par->data_capacity) {
+            } else if (desired > par->data_capacity) {
                 par->error = -ENOMEM;
                 return -ENOMEM;
             }
@@ -112,13 +112,13 @@ static int parcel_continue_write(struct parcel *par, size_t desired)
         } else {
             par->data_size = desired;
 
-            if(par->data_pos > desired) {
+            if (par->data_pos > desired) {
                 par->data_pos = desired;
             }
         }
     } else {
         // This is the first data.  Easy!
-        uint8_t* data = (uint8_t*)malloc(desired);
+        uint8_t *data = (uint8_t *)malloc(desired);
 
         if (!data) {
             par->error = -ENOMEM;
@@ -145,56 +145,56 @@ static int parcel_finish_write(struct parcel *par, size_t len)
     return 0;
 }
 
-/* 
+/*
    if the data memory not enough, realloc memory.
    call continue_write() finish the work
    */
 static int parcel_grow_data(struct parcel *par, size_t len)
 {
-    size_t new_size = ((par->data_size + len)*3)/2;
+    size_t new_size = ((par->data_size + len) * 3) / 2;
     return (new_size <= par->data_size)
-        ?  -ENOMEM : parcel_continue_write(par, new_size);
+           ?  -ENOMEM : parcel_continue_write(par, new_size);
 }
 
 
 /* set the parcel data size. */
 int parcel_set_data_size(struct parcel *par, size_t size)
 {
-	int err;
-	if(size == 0 && par->data_size!= 0) {
+    int err;
+    if (size == 0 && par->data_size != 0) {
         __parcel_init(par);
-		return 0;
-	}
+        return 0;
+    }
 
-	err = parcel_continue_write(par, size);
-	if(err == 0) {
-		par->data_size = size;
-	}
-	return err;
+    err = parcel_continue_write(par, size);
+    if (err == 0) {
+        par->data_size = size;
+    }
+    return err;
 }
 
 /* set the parcel data position. */
 void parcel_set_data_pos(struct parcel *par, size_t pos)
 {
-	par->data_pos = pos;
+    par->data_pos = pos;
 }
 
 /* set the parcel data capacity. */
 int parcel_set_data_capacity(struct parcel *par, size_t size)
 {
-	if(size > par->data_size)
-		return parcel_continue_write(par, size);
+    if (size > par->data_size)
+        return parcel_continue_write(par, size);
 
-	return 0;
+    return 0;
 }
 
 /* set the parcel data. */
-int parcel_set_data(struct parcel *par, const uint8_t* buffer, size_t len)
+int parcel_set_data(struct parcel *par, const uint8_t *buffer, size_t len)
 {
-	if(len == 0) {
+    if (len == 0) {
         __parcel_init(par);
-		return 0;
-	}
+        return 0;
+    }
 
     int err = parcel_restart_write(par, len);
     if (err == 0) {
@@ -204,20 +204,20 @@ int parcel_set_data(struct parcel *par, const uint8_t* buffer, size_t len)
     return err;
 }
 
-void* parcel_write_inplace(struct parcel *par, size_t len)
+void *parcel_write_inplace(struct parcel *par, size_t len)
 {
     int err;
-	const size_t padded = ALIGN(len, 4);
+    const size_t padded = ALIGN(len, 4);
 
-	if(padded + par->data_pos < par->data_pos) {
-		return NULL;
-	}
+    if (padded + par->data_pos < par->data_pos) {
+        return NULL;
+    }
 
-	if(padded + par->data_pos <= par->data_capacity) {
-        uint8_t* data;
+    if (padded + par->data_pos <= par->data_capacity) {
+        uint8_t *data;
 restart_write:
         data = par->data + par->data_pos;
-		if(padded != len) {
+        if (padded != len) {
 #if BYTE_ORDER == BIG_ENDIAN
             static uint32_t mask[4] = {
                 0x00000000, 0xffffff00, 0xffff0000, 0xff000000
@@ -227,19 +227,19 @@ restart_write:
                 0x00000000, 0x00ffffff, 0x0000ffff, 0x000000ff
             };
 #endif
-            *(uint32_t*)(data+padded-4) &= mask[padded-len];
+            *(uint32_t *)(data + padded - 4) &= mask[padded - len];
         }
-		
-		parcel_finish_write(par, padded);
-		return data;
-	}
 
-	err = parcel_grow_data(par, padded);
+        parcel_finish_write(par, padded);
+        return data;
+    }
 
-	if(err == 0)
-		goto restart_write;
+    err = parcel_grow_data(par, padded);
 
-	return NULL;
+    if (err == 0)
+        goto restart_write;
+
+    return NULL;
 }
 
 #define parcel_write_aligned(par, val)      \
@@ -294,20 +294,20 @@ type parcel_read_##type(struct parcel *par)   \
     return result;      \
 }
 
-int parcel_write(struct parcel *par, const void* data, size_t len)
+int parcel_write(struct parcel *par, const void *data, size_t len)
 {
-    void* d = parcel_write_inplace(par, len);
-    if(d) {
+    void *d = parcel_write_inplace(par, len);
+    if (d) {
         memcpy(d, data, len);
         return 0;
     }
     return par->error;
 }
 
-int parcel_read(struct parcel *par, _out void* data, size_t len)
+int parcel_read(struct parcel *par, _out void *data, size_t len)
 {
-    if ((par->data_pos + ALIGN(len, 4)) >= par->data_pos && 
-            (par->data_pos + ALIGN(len, 4)) <= par->data_size) {
+    if ((par->data_pos + ALIGN(len, 4)) >= par->data_pos &&
+        (par->data_pos + ALIGN(len, 4)) <= par->data_size) {
         memcpy(data, par->data + par->data_pos, len);
         par->data_pos += ALIGN(len, 4);
 
@@ -316,22 +316,22 @@ int parcel_read(struct parcel *par, _out void* data, size_t len)
     return -EINVAL;
 }
 
-int parcel_write_string(struct parcel *par, const char* str)
+int parcel_write_string(struct parcel *par, const char *str)
 {
-    return parcel_write(par, str, strlen(str)+1);
+    return parcel_write(par, str, strlen(str) + 1);
 }
 
-const char* parcel_read_string(struct parcel *par)
+const char *parcel_read_string(struct parcel *par)
 {
     size_t avail = par->data_size - par->data_pos;
 
     if (avail > 0) {
-        char* str = (char *)(par->data + par->data_pos);
+        char *str = (char *)(par->data + par->data_pos);
         /* is the string's trailing NUL within the parcel's valid bounds? */
-        char* eos = (char *)(memchr(str, 0, avail));
+        char *eos = (char *)(memchr(str, 0, avail));
         if (eos) {
             size_t len = eos - str;
-            par->data_pos += ALIGN(len+1, 4);
+            par->data_pos += ALIGN(len + 1, 4);
             return str;
         }
     }

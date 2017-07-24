@@ -1,6 +1,6 @@
 /*
  * src/queue.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -25,7 +25,7 @@ void queue_in(struct queue *q, struct packet *p)
 
     list_add_tail(&p->node, &q->list);
 
-    if((q->count++) == 0 && (q->flags & QUEUE_F_BLOCK))
+    if ((q->count++) == 0 && (q->flags & QUEUE_F_BLOCK))
         pthread_cond_broadcast(&q->cond);
 
     pthread_mutex_unlock(&q->lock);
@@ -37,8 +37,8 @@ struct packet *queue_out(struct queue *q)
     pthread_mutex_lock(&q->lock);
 
 retry:
-    if(queue_empty(q)) {
-        if(q->flags & QUEUE_F_BLOCK) {
+    if (queue_empty(q)) {
+        if (q->flags & QUEUE_F_BLOCK) {
             pthread_cond_wait(&q->cond, &q->lock);
             goto retry;
         } else {
@@ -62,7 +62,7 @@ struct packet *queue_peek(struct queue *q)
 {
     struct packet *p;
 
-    if(queue_empty(q)) {
+    if (queue_empty(q)) {
         pthread_mutex_unlock(&q->lock);
         return NULL;
     }
@@ -72,7 +72,7 @@ struct packet *queue_peek(struct queue *q)
 }
 
 
-size_t queue_count(struct queue *q) 
+size_t queue_count(struct queue *q)
 {
     return q->count;
 }
@@ -85,7 +85,7 @@ void queue_clear(struct queue *q, void(*reclaim)(struct packet *p))
     list_for_each_entry_safe(p, tmp, &q->list, node) {
         list_del(&p->node);
 
-        if(reclaim != NULL)
+        if (reclaim != NULL)
             reclaim(p);
     }
 
@@ -98,7 +98,7 @@ struct queue *queue_init(int block)
     struct queue *q;
 
     q = (struct queue *)malloc(sizeof(*q));
-    if(!q)
+    if (!q)
         return NULL;
 
     INIT_LIST_HEAD(&q->list);
@@ -113,7 +113,7 @@ struct queue *queue_init(int block)
 
 void queue_release(struct queue *q)
 {
-    if(q->count > 0)
+    if (q->count > 0)
         queue_clear(q, NULL);
 
     q->count = 0;

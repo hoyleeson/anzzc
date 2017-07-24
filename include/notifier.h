@@ -1,6 +1,6 @@
 /*
  * include/notifier.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -16,14 +16,14 @@
 #include <pthread.h>
 
 struct notifier_block {
-	int (*notifier_call)(struct notifier_block *, unsigned long, void *);
-	struct notifier_block *next;
-	int priority;
+    int (*notifier_call)(struct notifier_block *, unsigned long, void *);
+    struct notifier_block *next;
+    int priority;
 };
 
 struct notifier_head {
-	pthread_rwlock_t lock;
-	struct notifier_block *head;
+    pthread_rwlock_t lock;
+    struct notifier_block *head;
 };
 
 #define NOTIFIER_INIT(name) { 	\
@@ -47,11 +47,13 @@ extern "C" {
 
 
 int notifier_chain_register(struct notifier_head *nh, struct notifier_block *n);
-int notifier_chain_cond_register(struct notifier_head *nh, struct notifier_block *n);
-int notifier_chain_unregister(struct notifier_head *nh, struct notifier_block *n);
+int notifier_chain_cond_register(struct notifier_head *nh,
+                                 struct notifier_block *n);
+int notifier_chain_unregister(struct notifier_head *nh,
+                              struct notifier_block *n);
 
 int notifier_call_chain_nr(struct notifier_head *nh, unsigned long val, void *v,
-					int nr_to_call, int *nr_calls);
+                           int nr_to_call, int *nr_calls);
 int notifier_call_chain(struct notifier_head *nh, unsigned long val, void *v);
 
 #ifdef __cplusplus

@@ -1,6 +1,6 @@
 /*
  * src/parser.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -17,8 +17,7 @@
 #define T_TEXT 1
 #define T_NEWLINE 2
 
-struct parse_state
-{
+struct parse_state {
     char *ptr;
     char *text;
     int line;

@@ -51,9 +51,9 @@ static pthread_mutex_t simple_ida_lock = PTHREAD_MUTEX_INITIALIZER;
 /* the maximum ID which can be allocated given idr->layers */
 static int idr_max(int layers)
 {
-	int bits = min_t(int, layers * IDR_BITS, MAX_IDR_SHIFT);
+    int bits = min_t(int, layers * IDR_BITS, MAX_IDR_SHIFT);
 
-	return (1 << bits) - 1;
+    return (1 << bits) - 1;
 }
 
 /*
@@ -63,21 +63,21 @@ static int idr_max(int layers)
  */
 static int idr_layer_prefix_mask(int layer)
 {
-	return ~idr_max(layer + 1);
+    return ~idr_max(layer + 1);
 }
 
 static struct idr_layer *get_from_free_list(struct idr *idp)
 {
-	struct idr_layer *p;
+    struct idr_layer *p;
 
-	pthread_mutex_lock(&idp->lock);
-	if ((p = idp->id_free)) {
-		idp->id_free = p->ary[0];
-		idp->id_free_cnt--;
-		p->ary[0] = NULL;
-	}
-	pthread_mutex_unlock(&idp->lock);
-	return(p);
+    pthread_mutex_lock(&idp->lock);
+    if ((p = idp->id_free)) {
+        idp->id_free = p->ary[0];
+        idp->id_free_cnt--;
+        p->ary[0] = NULL;
+    }
+    pthread_mutex_unlock(&idp->lock);
+    return (p);
 }
 
 /**
@@ -94,87 +94,87 @@ static struct idr_layer *get_from_free_list(struct idr *idp)
  */
 static struct idr_layer *idr_layer_alloc(struct idr *layer_idr)
 {
-	/* this is the old path, bypass to get_from_free_list() */
-	if (layer_idr)
-		return get_from_free_list(layer_idr);
+    /* this is the old path, bypass to get_from_free_list() */
+    if (layer_idr)
+        return get_from_free_list(layer_idr);
 
-	/*
-	 * Try to allocate directly from kmem_cache.  We want to try this
-	 * before preload buffer; otherwise, non-preloading idr_alloc()
-	 * users will end up taking advantage of preloading ones.  As the
-	 * following is allowed to fail for preloaded cases, suppress
-	 * warning this time.
-	 */
-	return mempool_zalloc(idr_layer_cache);
+    /*
+     * Try to allocate directly from kmem_cache.  We want to try this
+     * before preload buffer; otherwise, non-preloading idr_alloc()
+     * users will end up taking advantage of preloading ones.  As the
+     * following is allowed to fail for preloaded cases, suppress
+     * warning this time.
+     */
+    return mempool_zalloc(idr_layer_cache);
 }
 
 #if 0
 static void idr_layer_rcu_free(struct rcu_head *head)
 {
-	struct idr_layer *layer;
+    struct idr_layer *layer;
 
-	layer = container_of(head, struct idr_layer, rcu_head);
-	mempool_free(idr_layer_cache, layer);
+    layer = container_of(head, struct idr_layer, rcu_head);
+    mempool_free(idr_layer_cache, layer);
 }
 #endif
 
 static inline void free_layer(struct idr *idr, struct idr_layer *p)
 {
-	if (idr->hint == p)
-		IDR_INIT_POINTER(idr->hint, NULL);
+    if (idr->hint == p)
+        IDR_INIT_POINTER(idr->hint, NULL);
 
-	mempool_free(idr_layer_cache, p);
-	//call_rcu(&p->rcu_head, idr_layer_rcu_free);
+    mempool_free(idr_layer_cache, p);
+    //call_rcu(&p->rcu_head, idr_layer_rcu_free);
 }
 
 /* only called when idp->lock is held */
 static void __move_to_free_list(struct idr *idp, struct idr_layer *p)
 {
-	p->ary[0] = idp->id_free;
-	idp->id_free = p;
-	idp->id_free_cnt++;
+    p->ary[0] = idp->id_free;
+    idp->id_free = p;
+    idp->id_free_cnt++;
 }
 
 static void move_to_free_list(struct idr *idp, struct idr_layer *p)
 {
-	/*
-	 * Depends on the return element being zeroed.
-	 */
-	pthread_mutex_lock(&idp->lock);
-	__move_to_free_list(idp, p);
-	pthread_mutex_unlock(&idp->lock);
+    /*
+     * Depends on the return element being zeroed.
+     */
+    pthread_mutex_lock(&idp->lock);
+    __move_to_free_list(idp, p);
+    pthread_mutex_unlock(&idp->lock);
 }
 
 static void idr_mark_full(struct idr_layer **pa, int id)
 {
-	struct idr_layer *p = pa[0];
-	int l = 0;
+    struct idr_layer *p = pa[0];
+    int l = 0;
 
-	__set_bit(id & IDR_MASK, p->bitmap);
-	/*
-	 * If this layer is full mark the bit in the layer above to
-	 * show that this part of the radix tree is full.  This may
-	 * complete the layer above and require walking up the radix
-	 * tree.
-	 */
-	while (bitmap_full(p->bitmap, IDR_SIZE)) {
-		if (!(p = pa[++l]))
-			break;
-		id = id >> IDR_BITS;
-		__set_bit((id & IDR_MASK), p->bitmap);
-	}
+    __set_bit(id & IDR_MASK, p->bitmap);
+    /*
+     * If this layer is full mark the bit in the layer above to
+     * show that this part of the radix tree is full.  This may
+     * complete the layer above and require walking up the radix
+     * tree.
+     */
+    while (bitmap_full(p->bitmap, IDR_SIZE)) {
+        if (!(p = pa[++l]))
+            break;
+        id = id >> IDR_BITS;
+        __set_bit((id & IDR_MASK), p->bitmap);
+    }
 }
 
 static int __idr_pre_get(struct idr *idp)
 {
-	while (idp->id_free_cnt < MAX_IDR_FREE) {
-		struct idr_layer *new;
-		new = mempool_zalloc(idr_layer_cache);
-		if (new == NULL)
-			return (0);
-		move_to_free_list(idp, new);
-	}
-	return 1;
+    while (idp->id_free_cnt < MAX_IDR_FREE) {
+        struct idr_layer *new;
+        new = mempool_zalloc(idr_layer_cache);
+        if (new == NULL)
+            return (0);
+        move_to_free_list(idp, new);
+    }
+    return 1;
 }
 
 /**
@@ -193,136 +193,136 @@ static int __idr_pre_get(struct idr *idp)
  *  -ENOMEM if more idr_layers need to be allocated.
  */
 static int sub_alloc(struct idr *idp, int *starting_id, struct idr_layer **pa,
-		     struct idr *layer_idr)
+                     struct idr *layer_idr)
 {
-	int n, m, sh;
-	struct idr_layer *p, *new;
-	int l, id, oid;
+    int n, m, sh;
+    struct idr_layer *p, *new;
+    int l, id, oid;
 
-	id = *starting_id;
- restart:
-	p = idp->top;
-	l = idp->layers;
-	pa[l--] = NULL;
-	while (1) {
-		/*
-		 * We run around this while until we reach the leaf node...
-		 */
-		n = (id >> (IDR_BITS*l)) & IDR_MASK;
-		m = find_next_zero_bit(p->bitmap, IDR_SIZE, n);
-		if (m == IDR_SIZE) {
-			/* no space available go back to previous layer. */
-			l++;
-			oid = id;
-			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
+    id = *starting_id;
+restart:
+    p = idp->top;
+    l = idp->layers;
+    pa[l--] = NULL;
+    while (1) {
+        /*
+         * We run around this while until we reach the leaf node...
+         */
+        n = (id >> (IDR_BITS * l)) & IDR_MASK;
+        m = find_next_zero_bit(p->bitmap, IDR_SIZE, n);
+        if (m == IDR_SIZE) {
+            /* no space available go back to previous layer. */
+            l++;
+            oid = id;
+            id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
 
-			/* if already at the top layer, we need to grow */
-			if (id > idr_max(idp->layers)) {
-				*starting_id = id;
-				return -EAGAIN;
-			}
-			p = pa[l];
-			BUG_ON(!p);
+            /* if already at the top layer, we need to grow */
+            if (id > idr_max(idp->layers)) {
+                *starting_id = id;
+                return -EAGAIN;
+            }
+            p = pa[l];
+            BUG_ON(!p);
 
-			/* If we need to go up one layer, continue the
-			 * loop; otherwise, restart from the top.
-			 */
-			sh = IDR_BITS * (l + 1);
-			if (oid >> sh == id >> sh)
-				continue;
-			else
-				goto restart;
-		}
-		if (m != n) {
-			sh = IDR_BITS*l;
-			id = ((id >> sh) ^ n ^ m) << sh;
-		}
-		if ((id >= MAX_IDR_BIT) || (id < 0))
-			return -ENOSPC;
-		if (l == 0)
-			break;
-		/*
-		 * Create the layer below if it is missing.
-		 */
-		if (!p->ary[m]) {
-			new = idr_layer_alloc(layer_idr);
-			if (!new)
-				return -ENOMEM;
-			new->layer = l-1;
-			new->prefix = id & idr_layer_prefix_mask(new->layer);
-			idr_assign_pointer(p->ary[m], new);
-			p->count++;
-		}
-		pa[l--] = p;
-		p = p->ary[m];
-	}
+            /* If we need to go up one layer, continue the
+             * loop; otherwise, restart from the top.
+             */
+            sh = IDR_BITS * (l + 1);
+            if (oid >> sh == id >> sh)
+                continue;
+            else
+                goto restart;
+        }
+        if (m != n) {
+            sh = IDR_BITS * l;
+            id = ((id >> sh) ^ n ^ m) << sh;
+        }
+        if ((id >= MAX_IDR_BIT) || (id < 0))
+            return -ENOSPC;
+        if (l == 0)
+            break;
+        /*
+         * Create the layer below if it is missing.
+         */
+        if (!p->ary[m]) {
+            new = idr_layer_alloc(layer_idr);
+            if (!new)
+                return -ENOMEM;
+            new->layer = l - 1;
+            new->prefix = id & idr_layer_prefix_mask(new->layer);
+            idr_assign_pointer(p->ary[m], new);
+            p->count++;
+        }
+        pa[l--] = p;
+        p = p->ary[m];
+    }
 
-	pa[l] = p;
-	return id;
+    pa[l] = p;
+    return id;
 }
 
 static int idr_get_empty_slot(struct idr *idp, int starting_id,
-			      struct idr_layer **pa, struct idr *layer_idr)
+                              struct idr_layer **pa, struct idr *layer_idr)
 {
-	struct idr_layer *p, *new;
-	int layers, v, id;
+    struct idr_layer *p, *new;
+    int layers, v, id;
 
-	id = starting_id;
+    id = starting_id;
 build_up:
-	p = idp->top;
-	layers = idp->layers;
-	if (unlikely(!p)) {
-		if (!(p = idr_layer_alloc(layer_idr)))
-			return -ENOMEM;
-		p->layer = 0;
-		layers = 1;
-	}
-	/*
-	 * Add a new layer to the top of the tree if the requested
-	 * id is larger than the currently allocated space.
-	 */
-	while (id > idr_max(layers)) {
-		layers++;
-		if (!p->count) {
-			/* special case: if the tree is currently empty,
-			 * then we grow the tree by moving the top node
-			 * upwards.
-			 */
-			p->layer++;
-			if(p->prefix)
+    p = idp->top;
+    layers = idp->layers;
+    if (unlikely(!p)) {
+        if (!(p = idr_layer_alloc(layer_idr)))
+            return -ENOMEM;
+        p->layer = 0;
+        layers = 1;
+    }
+    /*
+     * Add a new layer to the top of the tree if the requested
+     * id is larger than the currently allocated space.
+     */
+    while (id > idr_max(layers)) {
+        layers++;
+        if (!p->count) {
+            /* special case: if the tree is currently empty,
+             * then we grow the tree by moving the top node
+             * upwards.
+             */
+            p->layer++;
+            if (p->prefix)
                 logw("WARN: prefix:%d.\n", p->prefix);
-			continue;
-		}
-		if (!(new = idr_layer_alloc(layer_idr))) {
-			/*
-			 * The allocation failed.  If we built part of
-			 * the structure tear it down.
-			 */
-			pthread_mutex_lock(&idp->lock);
-			for (new = p; p && p != idp->top; new = p) {
-				p = p->ary[0];
-				new->ary[0] = NULL;
-				new->count = 0;
-				bitmap_clear(new->bitmap, 0, IDR_SIZE);
-				__move_to_free_list(idp, new);
-			}
-			pthread_mutex_unlock(&idp->lock);
-			return -ENOMEM;
-		}
-		new->ary[0] = p;
-		new->count = 1;
-		new->layer = layers-1;
-		new->prefix = id & idr_layer_prefix_mask(new->layer);
-		if (bitmap_full(p->bitmap, IDR_SIZE))
-			__set_bit(0, new->bitmap);
-		p = new;
-	}
-	idr_assign_pointer(idp->top, p);
-	idp->layers = layers;
-	v = sub_alloc(idp, &id, pa, layer_idr);
-	if (v == -EAGAIN)
-		goto build_up;
-	return(v);
+            continue;
+        }
+        if (!(new = idr_layer_alloc(layer_idr))) {
+            /*
+             * The allocation failed.  If we built part of
+             * the structure tear it down.
+             */
+            pthread_mutex_lock(&idp->lock);
+            for (new = p; p && p != idp->top; new = p) {
+                p = p->ary[0];
+                new->ary[0] = NULL;
+                new->count = 0;
+                bitmap_clear(new->bitmap, 0, IDR_SIZE);
+                __move_to_free_list(idp, new);
+            }
+            pthread_mutex_unlock(&idp->lock);
+            return -ENOMEM;
+        }
+        new->ary[0] = p;
+        new->count = 1;
+        new->layer = layers - 1;
+        new->prefix = id & idr_layer_prefix_mask(new->layer);
+        if (bitmap_full(p->bitmap, IDR_SIZE))
+            __set_bit(0, new->bitmap);
+        p = new;
+    }
+    idr_assign_pointer(idp->top, p);
+    idp->layers = layers;
+    v = sub_alloc(idp, &id, pa, layer_idr);
+    if (v == -EAGAIN)
+        goto build_up;
+    return (v);
 }
 
 /*
@@ -330,14 +330,14 @@ build_up:
  * Install the user pointer @ptr and mark the slot full.
  */
 static void idr_fill_slot(struct idr *idr, void *ptr, int id,
-			  struct idr_layer **pa)
+                          struct idr_layer **pa)
 {
-	/* update hint used for lookup, cleared from free_layer() */
-	idr_assign_pointer(idr->hint, pa[0]);
+    /* update hint used for lookup, cleared from free_layer() */
+    idr_assign_pointer(idr->hint, pa[0]);
 
-	idr_assign_pointer(pa[0]->ary[id & IDR_MASK], (struct idr_layer *)ptr);
-	pa[0]->count++;
-	idr_mark_full(pa, id);
+    idr_assign_pointer(pa[0]->ary[id & IDR_MASK], (struct idr_layer *)ptr);
+    pa[0]->count++;
+    idr_mark_full(pa, id);
 }
 
 
@@ -362,25 +362,25 @@ static void idr_fill_slot(struct idr *idr, void *ptr, int id,
  */
 int idr_alloc(struct idr *idr, void *ptr, int start, int end)
 {
-	int max = end > 0 ? end - 1 : INT_MAX;	/* inclusive upper limit */
-	struct idr_layer *pa[MAX_IDR_LEVEL + 1];
-	int id;
+    int max = end > 0 ? end - 1 : INT_MAX;	/* inclusive upper limit */
+    struct idr_layer *pa[MAX_IDR_LEVEL + 1];
+    int id;
 
-	/* sanity checks */
-	if (start < 0)
-		return -EINVAL;
-	if (unlikely(max < start))
-		return -ENOSPC;
+    /* sanity checks */
+    if (start < 0)
+        return -EINVAL;
+    if (unlikely(max < start))
+        return -ENOSPC;
 
-	/* allocate id */
-	id = idr_get_empty_slot(idr, start, pa, NULL);
-	if (unlikely(id < 0))
-		return id;
-	if (unlikely(id > max))
-		return -ENOSPC;
+    /* allocate id */
+    id = idr_get_empty_slot(idr, start, pa, NULL);
+    if (unlikely(id < 0))
+        return id;
+    if (unlikely(id > max))
+        return -ENOSPC;
 
-	idr_fill_slot(idr, ptr, id, pa);
-	return id;
+    idr_fill_slot(idr, ptr, id, pa);
+    return id;
 }
 
 /**
@@ -396,57 +396,57 @@ int idr_alloc(struct idr *idr, void *ptr, int start, int end)
  */
 int idr_alloc_cyclic(struct idr *idr, void *ptr, int start, int end)
 {
-	int id;
+    int id;
 
-	id = idr_alloc(idr, ptr, max(start, idr->cur), end);
-	if (id == -ENOSPC)
-		id = idr_alloc(idr, ptr, start, end);
+    id = idr_alloc(idr, ptr, max(start, idr->cur), end);
+    if (id == -ENOSPC)
+        id = idr_alloc(idr, ptr, start, end);
 
-	if (likely(id >= 0))
-		idr->cur = id + 1;
-	return id;
+    if (likely(id >= 0))
+        idr->cur = id + 1;
+    return id;
 }
 
 static void idr_remove_warning(int id)
 {
-	logw("idr_remove called for id=%d which is not allocated.\n", id);
+    logw("idr_remove called for id=%d which is not allocated.\n", id);
 }
 
 static void sub_remove(struct idr *idp, int shift, int id)
 {
-	struct idr_layer *p = idp->top;
-	struct idr_layer **pa[MAX_IDR_LEVEL + 1];
-	struct idr_layer ***paa = &pa[0];
-	struct idr_layer *to_free;
-	int n;
+    struct idr_layer *p = idp->top;
+    struct idr_layer **pa[MAX_IDR_LEVEL + 1];
+    struct idr_layer ***paa = &pa[0];
+    struct idr_layer *to_free;
+    int n;
 
-	*paa = NULL;
-	*++paa = &idp->top;
+    *paa = NULL;
+    *++paa = &idp->top;
 
-	while ((shift > 0) && p) {
-		n = (id >> shift) & IDR_MASK;
-		__clear_bit(n, p->bitmap);
-		*++paa = &p->ary[n];
-		p = p->ary[n];
-		shift -= IDR_BITS;
-	}
-	n = id & IDR_MASK;
-	if (likely(p != NULL && test_bit(n, p->bitmap))) {
-		__clear_bit(n, p->bitmap);
-		IDR_INIT_POINTER(p->ary[n], NULL);
-		to_free = NULL;
-		while(*paa && ! --((**paa)->count)){
-			if (to_free)
-				free_layer(idp, to_free);
-			to_free = **paa;
-			**paa-- = NULL;
-		}
-		if (!*paa)
-			idp->layers = 0;
-		if (to_free)
-			free_layer(idp, to_free);
-	} else
-		idr_remove_warning(id);
+    while ((shift > 0) && p) {
+        n = (id >> shift) & IDR_MASK;
+        __clear_bit(n, p->bitmap);
+        *++paa = &p->ary[n];
+        p = p->ary[n];
+        shift -= IDR_BITS;
+    }
+    n = id & IDR_MASK;
+    if (likely(p != NULL && test_bit(n, p->bitmap))) {
+        __clear_bit(n, p->bitmap);
+        IDR_INIT_POINTER(p->ary[n], NULL);
+        to_free = NULL;
+        while (*paa && ! --((**paa)->count)) {
+            if (to_free)
+                free_layer(idp, to_free);
+            to_free = **paa;
+            **paa-- = NULL;
+        }
+        if (!*paa)
+            idp->layers = 0;
+        if (to_free)
+            free_layer(idp, to_free);
+    } else
+        idr_remove_warning(id);
 }
 
 /**
@@ -456,69 +456,69 @@ static void sub_remove(struct idr *idp, int shift, int id)
  */
 void idr_remove(struct idr *idp, int id)
 {
-	struct idr_layer *p;
-	struct idr_layer *to_free;
+    struct idr_layer *p;
+    struct idr_layer *to_free;
 
-	if (id < 0)
-		return;
+    if (id < 0)
+        return;
 
-	if (id > idr_max(idp->layers)) {
-		idr_remove_warning(id);
-		return;
-	}
+    if (id > idr_max(idp->layers)) {
+        idr_remove_warning(id);
+        return;
+    }
 
-	sub_remove(idp, (idp->layers - 1) * IDR_BITS, id);
-	if (idp->top && idp->top->count == 1 && (idp->layers > 1) &&
-	    idp->top->ary[0]) {
-		/*
-		 * Single child at leftmost slot: we can shrink the tree.
-		 * This level is not needed anymore since when layers are
-		 * inserted, they are inserted at the top of the existing
-		 * tree.
-		 */
-		to_free = idp->top;
-		p = idp->top->ary[0];
-		idr_assign_pointer(idp->top, p);
-		--idp->layers;
-		to_free->count = 0;
-		bitmap_clear(to_free->bitmap, 0, IDR_SIZE);
-		free_layer(idp, to_free);
-	}
+    sub_remove(idp, (idp->layers - 1) * IDR_BITS, id);
+    if (idp->top && idp->top->count == 1 && (idp->layers > 1) &&
+        idp->top->ary[0]) {
+        /*
+         * Single child at leftmost slot: we can shrink the tree.
+         * This level is not needed anymore since when layers are
+         * inserted, they are inserted at the top of the existing
+         * tree.
+         */
+        to_free = idp->top;
+        p = idp->top->ary[0];
+        idr_assign_pointer(idp->top, p);
+        --idp->layers;
+        to_free->count = 0;
+        bitmap_clear(to_free->bitmap, 0, IDR_SIZE);
+        free_layer(idp, to_free);
+    }
 }
 
 static void __idr_remove_all(struct idr *idp)
 {
-	int n, id, max;
-	int bt_mask;
-	struct idr_layer *p;
-	struct idr_layer *pa[MAX_IDR_LEVEL + 1];
-	struct idr_layer **paa = &pa[0];
+    int n, id, max;
+    int bt_mask;
+    struct idr_layer *p;
+    struct idr_layer *pa[MAX_IDR_LEVEL + 1];
+    struct idr_layer **paa = &pa[0];
 
-	n = idp->layers * IDR_BITS;
-	*paa = idp->top;
-	IDR_INIT_POINTER(idp->top, NULL);
-	max = idr_max(idp->layers);
+    n = idp->layers * IDR_BITS;
+    *paa = idp->top;
+    IDR_INIT_POINTER(idp->top, NULL);
+    max = idr_max(idp->layers);
 
-	id = 0;
-	while (id >= 0 && id <= max) {
-		p = *paa;
-		while (n > IDR_BITS && p) {
-			n -= IDR_BITS;
-			p = p->ary[(id >> n) & IDR_MASK];
-			*++paa = p;
-		}
+    id = 0;
+    while (id >= 0 && id <= max) {
+        p = *paa;
+        while (n > IDR_BITS && p) {
+            n -= IDR_BITS;
+            p = p->ary[(id >> n) & IDR_MASK];
+            *++paa = p;
+        }
 
-		bt_mask = id;
-		id += 1 << n;
-		/* Get the highest bit that the above add changed from 0->1. */
-		while (n < fls(id ^ bt_mask)) {
-			if (*paa)
-				free_layer(idp, *paa);
-			n += IDR_BITS;
-			--paa;
-		}
-	}
-	idp->layers = 0;
+        bt_mask = id;
+        id += 1 << n;
+        /* Get the highest bit that the above add changed from 0->1. */
+        while (n < fls(id ^ bt_mask)) {
+            if (*paa)
+                free_layer(idp, *paa);
+            n += IDR_BITS;
+            --paa;
+        }
+    }
+    idp->layers = 0;
 }
 
 /**
@@ -536,37 +536,37 @@ static void __idr_remove_all(struct idr *idp)
  */
 void idr_destroy(struct idr *idp)
 {
-	__idr_remove_all(idp);
+    __idr_remove_all(idp);
 
-	while (idp->id_free_cnt) {
-		struct idr_layer *p = get_from_free_list(idp);
-		mempool_free(idr_layer_cache, p);
-	}
+    while (idp->id_free_cnt) {
+        struct idr_layer *p = get_from_free_list(idp);
+        mempool_free(idr_layer_cache, p);
+    }
 }
 
 void *idr_find_slowpath(struct idr *idp, int id)
 {
-	int n;
-	struct idr_layer *p;
+    int n;
+    struct idr_layer *p;
 
-	if (id < 0)
-		return NULL;
+    if (id < 0)
+        return NULL;
 
-	p = idr_dereference_raw(idp->top);
-	if (!p)
-		return NULL;
-	n = (p->layer+1) * IDR_BITS;
+    p = idr_dereference_raw(idp->top);
+    if (!p)
+        return NULL;
+    n = (p->layer + 1) * IDR_BITS;
 
-	if (id > idr_max(p->layer + 1))
-		return NULL;
-	BUG_ON(n == 0);
+    if (id > idr_max(p->layer + 1))
+        return NULL;
+    BUG_ON(n == 0);
 
-	while (n > 0 && p) {
-		n -= IDR_BITS;
-		BUG_ON(n != p->layer*IDR_BITS);
-		p = idr_dereference_raw(p->ary[(id >> n) & IDR_MASK]);
-	}
-	return((void *)p);
+    while (n > 0 && p) {
+        n -= IDR_BITS;
+        BUG_ON(n != p->layer * IDR_BITS);
+        p = idr_dereference_raw(p->ary[(id >> n) & IDR_MASK]);
+    }
+    return ((void *)p);
 }
 
 /**
@@ -588,40 +588,40 @@ void *idr_find_slowpath(struct idr *idp, int id)
  * The caller must serialize idr_for_each() vs idr_get_new() and idr_remove().
  */
 int idr_for_each(struct idr *idp,
-		 int (*fn)(int id, void *p, void *data), void *data)
+                 int (*fn)(int id, void *p, void *data), void *data)
 {
-	int n, id, max, error = 0;
-	struct idr_layer *p;
-	struct idr_layer *pa[MAX_IDR_LEVEL + 1];
-	struct idr_layer **paa = &pa[0];
+    int n, id, max, error = 0;
+    struct idr_layer *p;
+    struct idr_layer *pa[MAX_IDR_LEVEL + 1];
+    struct idr_layer **paa = &pa[0];
 
-	n = idp->layers * IDR_BITS;
-	*paa = idr_dereference_raw(idp->top);
-	max = idr_max(idp->layers);
+    n = idp->layers * IDR_BITS;
+    *paa = idr_dereference_raw(idp->top);
+    max = idr_max(idp->layers);
 
-	id = 0;
-	while (id >= 0 && id <= max) {
-		p = *paa;
-		while (n > 0 && p) {
-			n -= IDR_BITS;
-			p = idr_dereference_raw(p->ary[(id >> n) & IDR_MASK]);
-			*++paa = p;
-		}
+    id = 0;
+    while (id >= 0 && id <= max) {
+        p = *paa;
+        while (n > 0 && p) {
+            n -= IDR_BITS;
+            p = idr_dereference_raw(p->ary[(id >> n) & IDR_MASK]);
+            *++paa = p;
+        }
 
-		if (p) {
-			error = fn(id, (void *)p, data);
-			if (error)
-				break;
-		}
+        if (p) {
+            error = fn(id, (void *)p, data);
+            if (error)
+                break;
+        }
 
-		id += 1 << n;
-		while (n < fls(id)) {
-			n += IDR_BITS;
-			--paa;
-		}
-	}
+        id += 1 << n;
+        while (n < fls(id)) {
+            n += IDR_BITS;
+            --paa;
+        }
+    }
 
-	return error;
+    return error;
 }
 
 /**
@@ -638,45 +638,45 @@ int idr_for_each(struct idr *idp,
  */
 void *idr_get_next(struct idr *idp, int *nextidp)
 {
-	struct idr_layer *p, *pa[MAX_IDR_LEVEL + 1];
-	struct idr_layer **paa = &pa[0];
-	int id = *nextidp;
-	int n, max;
+    struct idr_layer *p, *pa[MAX_IDR_LEVEL + 1];
+    struct idr_layer **paa = &pa[0];
+    int id = *nextidp;
+    int n, max;
 
-	/* find first ent */
-	p = *paa = idr_dereference_raw(idp->top);
-	if (!p)
-		return NULL;
-	n = (p->layer + 1) * IDR_BITS;
-	max = idr_max(p->layer + 1);
+    /* find first ent */
+    p = *paa = idr_dereference_raw(idp->top);
+    if (!p)
+        return NULL;
+    n = (p->layer + 1) * IDR_BITS;
+    max = idr_max(p->layer + 1);
 
-	while (id >= 0 && id <= max) {
-		p = *paa;
-		while (n > 0 && p) {
-			n -= IDR_BITS;
-			p = idr_dereference_raw(p->ary[(id >> n) & IDR_MASK]);
-			*++paa = p;
-		}
+    while (id >= 0 && id <= max) {
+        p = *paa;
+        while (n > 0 && p) {
+            n -= IDR_BITS;
+            p = idr_dereference_raw(p->ary[(id >> n) & IDR_MASK]);
+            *++paa = p;
+        }
 
-		if (p) {
-			*nextidp = id;
-			return p;
-		}
+        if (p) {
+            *nextidp = id;
+            return p;
+        }
 
-		/*
-		 * Proceed to the next layer at the current level.  Unlike
-		 * idr_for_each(), @id isn't guaranteed to be aligned to
-		 * layer boundary at this point and adding 1 << n may
-		 * incorrectly skip IDs.  Make sure we jump to the
-		 * beginning of the next layer using round_up().
-		 */
-		id = round_up(id + 1, 1 << n);
-		while (n < fls(id)) {
-			n += IDR_BITS;
-			--paa;
-		}
-	}
-	return NULL;
+        /*
+         * Proceed to the next layer at the current level.  Unlike
+         * idr_for_each(), @id isn't guaranteed to be aligned to
+         * layer boundary at this point and adding 1 << n may
+         * incorrectly skip IDs.  Make sure we jump to the
+         * beginning of the next layer using round_up().
+         */
+        id = round_up(id + 1, 1 << n);
+        while (n < fls(id)) {
+            n += IDR_BITS;
+            --paa;
+        }
+    }
+    return NULL;
 }
 
 
@@ -694,33 +694,33 @@ void *idr_get_next(struct idr *idp, int *nextidp)
  */
 void *idr_replace(struct idr *idp, void *ptr, int id)
 {
-	int n;
-	struct idr_layer *p, *old_p;
+    int n;
+    struct idr_layer *p, *old_p;
 
-	if (id < 0)
-		return NULL;
+    if (id < 0)
+        return NULL;
 
-	p = idp->top;
-	if (!p)
-		return NULL;
+    p = idp->top;
+    if (!p)
+        return NULL;
 
-	if (id > idr_max(p->layer + 1))
-		return NULL;
+    if (id > idr_max(p->layer + 1))
+        return NULL;
 
-	n = p->layer * IDR_BITS;
-	while ((n > 0) && p) {
-		p = p->ary[(id >> n) & IDR_MASK];
-		n -= IDR_BITS;
-	}
+    n = p->layer * IDR_BITS;
+    while ((n > 0) && p) {
+        p = p->ary[(id >> n) & IDR_MASK];
+        n -= IDR_BITS;
+    }
 
-	n = id & IDR_MASK;
-	if (unlikely(p == NULL || !test_bit(n, p->bitmap)))
-		return NULL;
+    n = id & IDR_MASK;
+    if (unlikely(p == NULL || !test_bit(n, p->bitmap)))
+        return NULL;
 
-	old_p = p->ary[n];
-	idr_assign_pointer(p->ary[n], ptr);
+    old_p = p->ary[n];
+    idr_assign_pointer(p->ary[n], ptr);
 
-	return old_p;
+    return old_p;
 }
 
 
@@ -733,18 +733,18 @@ void *idr_replace(struct idr *idp, void *ptr, int id)
  */
 void idr_init(struct idr *idp)
 {
-	memset(idp, 0, sizeof(struct idr));
-	pthread_mutex_init(&idp->lock, NULL);
+    memset(idp, 0, sizeof(struct idr));
+    pthread_mutex_init(&idp->lock, NULL);
 }
 
 static int idr_has_entry(int id, void *p, void *data)
 {
-	return 1;
+    return 1;
 }
 
 bool idr_is_empty(struct idr *idp)
 {
-	return !idr_for_each(idp, idr_has_entry, NULL);
+    return !idr_for_each(idp, idr_has_entry, NULL);
 }
 
 /**
@@ -761,16 +761,16 @@ bool idr_is_empty(struct idr *idp)
 
 static void free_bitmap(struct ida *ida, struct ida_bitmap *bitmap)
 {
-	if (!ida->free_bitmap) {
-		pthread_mutex_lock(&ida->idr.lock);
-		if (!ida->free_bitmap) {
-			ida->free_bitmap = bitmap;
-			bitmap = NULL;
-		}
-		pthread_mutex_unlock(&ida->idr.lock);
-	}
+    if (!ida->free_bitmap) {
+        pthread_mutex_lock(&ida->idr.lock);
+        if (!ida->free_bitmap) {
+            ida->free_bitmap = bitmap;
+            bitmap = NULL;
+        }
+        pthread_mutex_unlock(&ida->idr.lock);
+    }
 
-	free(bitmap);
+    free(bitmap);
 }
 
 /**
@@ -786,22 +786,22 @@ static void free_bitmap(struct ida *ida, struct ida_bitmap *bitmap)
  */
 int ida_pre_get(struct ida *ida)
 {
-	/* allocate idr_layers */
-	if (!__idr_pre_get(&ida->idr))
-		return 0;
+    /* allocate idr_layers */
+    if (!__idr_pre_get(&ida->idr))
+        return 0;
 
-	/* allocate free_bitmap */
-	if (!ida->free_bitmap) {
-		struct ida_bitmap *bitmap;
+    /* allocate free_bitmap */
+    if (!ida->free_bitmap) {
+        struct ida_bitmap *bitmap;
 
-		bitmap = malloc(sizeof(struct ida_bitmap));
-		if (!bitmap)
-			return 0;
+        bitmap = malloc(sizeof(struct ida_bitmap));
+        if (!bitmap)
+            return 0;
 
-		free_bitmap(ida, bitmap);
-	}
+        free_bitmap(ida, bitmap);
+    }
 
-	return 1;
+    return 1;
 }
 
 /**
@@ -821,73 +821,73 @@ int ida_pre_get(struct ida *ida)
  */
 int ida_get_new_above(struct ida *ida, int starting_id, int *p_id)
 {
-	struct idr_layer *pa[MAX_IDR_LEVEL + 1];
-	struct ida_bitmap *bitmap;
-	int idr_id = starting_id / IDA_BITMAP_BITS;
-	int offset = starting_id % IDA_BITMAP_BITS;
-	int t, id;
+    struct idr_layer *pa[MAX_IDR_LEVEL + 1];
+    struct ida_bitmap *bitmap;
+    int idr_id = starting_id / IDA_BITMAP_BITS;
+    int offset = starting_id % IDA_BITMAP_BITS;
+    int t, id;
 
- restart:
-	/* get vacant slot */
-	t = idr_get_empty_slot(&ida->idr, idr_id, pa, &ida->idr);
-	if (t < 0)
-		return t == -ENOMEM ? -EAGAIN : t;
+restart:
+    /* get vacant slot */
+    t = idr_get_empty_slot(&ida->idr, idr_id, pa, &ida->idr);
+    if (t < 0)
+        return t == -ENOMEM ? -EAGAIN : t;
 
-	if (t * IDA_BITMAP_BITS >= MAX_IDR_BIT)
-		return -ENOSPC;
+    if (t * IDA_BITMAP_BITS >= MAX_IDR_BIT)
+        return -ENOSPC;
 
-	if (t != idr_id)
-		offset = 0;
-	idr_id = t;
+    if (t != idr_id)
+        offset = 0;
+    idr_id = t;
 
-	/* if bitmap isn't there, create a new one */
-	bitmap = (void *)pa[0]->ary[idr_id & IDR_MASK];
-	if (!bitmap) {
-		pthread_mutex_lock(&ida->idr.lock);
-		bitmap = ida->free_bitmap;
-		ida->free_bitmap = NULL;
-		pthread_mutex_unlock(&ida->idr.lock);
+    /* if bitmap isn't there, create a new one */
+    bitmap = (void *)pa[0]->ary[idr_id & IDR_MASK];
+    if (!bitmap) {
+        pthread_mutex_lock(&ida->idr.lock);
+        bitmap = ida->free_bitmap;
+        ida->free_bitmap = NULL;
+        pthread_mutex_unlock(&ida->idr.lock);
 
-		if (!bitmap)
-			return -EAGAIN;
+        if (!bitmap)
+            return -EAGAIN;
 
-		memset(bitmap, 0, sizeof(struct ida_bitmap));
-		idr_assign_pointer(pa[0]->ary[idr_id & IDR_MASK],
-				(void *)bitmap);
-		pa[0]->count++;
-	}
+        memset(bitmap, 0, sizeof(struct ida_bitmap));
+        idr_assign_pointer(pa[0]->ary[idr_id & IDR_MASK],
+                           (void *)bitmap);
+        pa[0]->count++;
+    }
 
-	/* lookup for empty slot */
-	t = find_next_zero_bit(bitmap->bitmap, IDA_BITMAP_BITS, offset);
-	if (t == IDA_BITMAP_BITS) {
-		/* no empty slot after offset, continue to the next chunk */
-		idr_id++;
-		offset = 0;
-		goto restart;
-	}
+    /* lookup for empty slot */
+    t = find_next_zero_bit(bitmap->bitmap, IDA_BITMAP_BITS, offset);
+    if (t == IDA_BITMAP_BITS) {
+        /* no empty slot after offset, continue to the next chunk */
+        idr_id++;
+        offset = 0;
+        goto restart;
+    }
 
-	id = idr_id * IDA_BITMAP_BITS + t;
-	if (id >= MAX_IDR_BIT)
-		return -ENOSPC;
+    id = idr_id * IDA_BITMAP_BITS + t;
+    if (id >= MAX_IDR_BIT)
+        return -ENOSPC;
 
-	__set_bit(t, bitmap->bitmap);
-	if (++bitmap->nr_busy == IDA_BITMAP_BITS)
-		idr_mark_full(pa, idr_id);
+    __set_bit(t, bitmap->bitmap);
+    if (++bitmap->nr_busy == IDA_BITMAP_BITS)
+        idr_mark_full(pa, idr_id);
 
-	*p_id = id;
+    *p_id = id;
 
-	/* Each leaf node can handle nearly a thousand slots and the
-	 * whole idea of ida is to have small memory foot print.
-	 * Throw away extra resources one by one after each successful
-	 * allocation.
-	 */
-	if (ida->idr.id_free_cnt || ida->free_bitmap) {
-		struct idr_layer *p = get_from_free_list(&ida->idr);
-		if (p)
-			mempool_free(idr_layer_cache, p);
-	}
+    /* Each leaf node can handle nearly a thousand slots and the
+     * whole idea of ida is to have small memory foot print.
+     * Throw away extra resources one by one after each successful
+     * allocation.
+     */
+    if (ida->idr.id_free_cnt || ida->free_bitmap) {
+        struct idr_layer *p = get_from_free_list(&ida->idr);
+        if (p)
+            mempool_free(idr_layer_cache, p);
+    }
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -897,46 +897,46 @@ int ida_get_new_above(struct ida *ida, int starting_id, int *p_id)
  */
 void ida_remove(struct ida *ida, int id)
 {
-	struct idr_layer *p = ida->idr.top;
-	int shift = (ida->idr.layers - 1) * IDR_BITS;
-	int idr_id = id / IDA_BITMAP_BITS;
-	int offset = id % IDA_BITMAP_BITS;
-	int n;
-	struct ida_bitmap *bitmap;
+    struct idr_layer *p = ida->idr.top;
+    int shift = (ida->idr.layers - 1) * IDR_BITS;
+    int idr_id = id / IDA_BITMAP_BITS;
+    int offset = id % IDA_BITMAP_BITS;
+    int n;
+    struct ida_bitmap *bitmap;
 
-	if (idr_id > idr_max(ida->idr.layers))
-		goto err;
+    if (idr_id > idr_max(ida->idr.layers))
+        goto err;
 
-	/* clear full bits while looking up the leaf idr_layer */
-	while ((shift > 0) && p) {
-		n = (idr_id >> shift) & IDR_MASK;
-		__clear_bit(n, p->bitmap);
-		p = p->ary[n];
-		shift -= IDR_BITS;
-	}
+    /* clear full bits while looking up the leaf idr_layer */
+    while ((shift > 0) && p) {
+        n = (idr_id >> shift) & IDR_MASK;
+        __clear_bit(n, p->bitmap);
+        p = p->ary[n];
+        shift -= IDR_BITS;
+    }
 
-	if (p == NULL)
-		goto err;
+    if (p == NULL)
+        goto err;
 
-	n = idr_id & IDR_MASK;
-	__clear_bit(n, p->bitmap);
+    n = idr_id & IDR_MASK;
+    __clear_bit(n, p->bitmap);
 
-	bitmap = (void *)p->ary[n];
-	if (!bitmap || !test_bit(offset, bitmap->bitmap))
-		goto err;
+    bitmap = (void *)p->ary[n];
+    if (!bitmap || !test_bit(offset, bitmap->bitmap))
+        goto err;
 
-	/* update bitmap and remove it if empty */
-	__clear_bit(offset, bitmap->bitmap);
-	if (--bitmap->nr_busy == 0) {
-		__set_bit(n, p->bitmap);	/* to please idr_remove() */
-		idr_remove(&ida->idr, idr_id);
-		free_bitmap(ida, bitmap);
-	}
+    /* update bitmap and remove it if empty */
+    __clear_bit(offset, bitmap->bitmap);
+    if (--bitmap->nr_busy == 0) {
+        __set_bit(n, p->bitmap);	/* to please idr_remove() */
+        idr_remove(&ida->idr, idr_id);
+        free_bitmap(ida, bitmap);
+    }
 
-	return;
+    return;
 
- err:
-	logw("ida_remove called for id=%d which is not allocated.\n", id);
+err:
+    logw("ida_remove called for id=%d which is not allocated.\n", id);
 }
 
 /**
@@ -945,8 +945,8 @@ void ida_remove(struct ida *ida, int id)
  */
 void ida_destroy(struct ida *ida)
 {
-	idr_destroy(&ida->idr);
-	free(ida->free_bitmap);
+    idr_destroy(&ida->idr);
+    free(ida->free_bitmap);
 }
 
 /**
@@ -962,39 +962,39 @@ void ida_destroy(struct ida *ida)
  */
 int ida_simple_get(struct ida *ida, unsigned int start, unsigned int end)
 {
-	int ret, id;
-	unsigned int max;
+    int ret, id;
+    unsigned int max;
 
-	BUG_ON((int)start < 0);
-	BUG_ON((int)end < 0);
+    BUG_ON((int)start < 0);
+    BUG_ON((int)end < 0);
 
-	if (end == 0)
-		max = 0x80000000;
-	else {
-		BUG_ON(end < start);
-		max = end - 1;
-	}
+    if (end == 0)
+        max = 0x80000000;
+    else {
+        BUG_ON(end < start);
+        max = end - 1;
+    }
 
 again:
-	if (!ida_pre_get(ida))
-		return -ENOMEM;
+    if (!ida_pre_get(ida))
+        return -ENOMEM;
 
-	pthread_mutex_lock(&simple_ida_lock);
-	ret = ida_get_new_above(ida, start, &id);
-	if (!ret) {
-		if (id > max) {
-			ida_remove(ida, id);
-			ret = -ENOSPC;
-		} else {
-			ret = id;
-		}
-	}
-	pthread_mutex_unlock(&simple_ida_lock);
+    pthread_mutex_lock(&simple_ida_lock);
+    ret = ida_get_new_above(ida, start, &id);
+    if (!ret) {
+        if (id > max) {
+            ida_remove(ida, id);
+            ret = -ENOSPC;
+        } else {
+            ret = id;
+        }
+    }
+    pthread_mutex_unlock(&simple_ida_lock);
 
-	if (unlikely(ret == -EAGAIN))
-		goto again;
+    if (unlikely(ret == -EAGAIN))
+        goto again;
 
-	return ret;
+    return ret;
 }
 
 /**
@@ -1004,10 +1004,10 @@ again:
  */
 void ida_simple_remove(struct ida *ida, unsigned int id)
 {
-	BUG_ON((int)id < 0);
-	pthread_mutex_lock(&simple_ida_lock);
-	ida_remove(ida, id);
-	pthread_mutex_unlock(&simple_ida_lock);
+    BUG_ON((int)id < 0);
+    pthread_mutex_lock(&simple_ida_lock);
+    ida_remove(ida, id);
+    pthread_mutex_unlock(&simple_ida_lock);
 }
 
 /**
@@ -1019,14 +1019,14 @@ void ida_simple_remove(struct ida *ida, unsigned int id)
  */
 void ida_init(struct ida *ida)
 {
-	memset(ida, 0, sizeof(struct ida));
-	idr_init(&ida->idr);
+    memset(ida, 0, sizeof(struct ida));
+    idr_init(&ida->idr);
 
 }
 
 
 void idr_init_cache(void)
 {
-	idr_layer_cache = mempool_create(sizeof(struct idr_layer), 256, 0);
+    idr_layer_cache = mempool_create(sizeof(struct idr_layer), 256, 0);
 }
 

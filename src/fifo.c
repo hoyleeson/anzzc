@@ -81,7 +81,7 @@ void __fifo_free(struct __fifo *fifo)
 }
 
 int __fifo_init(struct __fifo *fifo, void *buffer,
-        unsigned int size, size_t esize)
+                unsigned int size, size_t esize)
 {
     size /= esize;
 
@@ -103,7 +103,7 @@ int __fifo_init(struct __fifo *fifo, void *buffer,
 }
 
 static void fifo_copy_in(struct __fifo *fifo, const void *src,
-        unsigned int len, unsigned int off)
+                         unsigned int len, unsigned int off)
 {
     unsigned int size = fifo->mask + 1;
     unsigned int esize = fifo->esize;
@@ -122,7 +122,7 @@ static void fifo_copy_in(struct __fifo *fifo, const void *src,
 }
 
 unsigned int __fifo_in(struct __fifo *fifo,
-        const void *buf, unsigned int len)
+                       const void *buf, unsigned int len)
 {
     unsigned int l;
 
@@ -136,7 +136,7 @@ unsigned int __fifo_in(struct __fifo *fifo,
 }
 
 static void fifo_copy_out(struct __fifo *fifo, void *dst,
-        unsigned int len, unsigned int off)
+                          unsigned int len, unsigned int off)
 {
     unsigned int size = fifo->mask + 1;
     unsigned int esize = fifo->esize;
@@ -155,7 +155,7 @@ static void fifo_copy_out(struct __fifo *fifo, void *dst,
 }
 
 unsigned int __fifo_out_peek(struct __fifo *fifo,
-        void *buf, unsigned int len)
+                             void *buf, unsigned int len)
 {
     unsigned int l;
 
@@ -168,7 +168,7 @@ unsigned int __fifo_out_peek(struct __fifo *fifo,
 }
 
 unsigned int __fifo_out(struct __fifo *fifo,
-        void *buf, unsigned int len)
+                        void *buf, unsigned int len)
 {
     len = __fifo_out_peek(fifo, buf, len);
     fifo->out += len;
@@ -230,7 +230,7 @@ unsigned int __fifo_len_r(struct __fifo *fifo, size_t recsize)
 }
 
 unsigned int __fifo_in_r(struct __fifo *fifo, const void *buf,
-        unsigned int len, size_t recsize)
+                         unsigned int len, size_t recsize)
 {
     if (len + recsize > fifo_unused(fifo))
         return 0;
@@ -243,7 +243,7 @@ unsigned int __fifo_in_r(struct __fifo *fifo, const void *buf,
 }
 
 static unsigned int fifo_out_copy_r(struct __fifo *fifo,
-        void *buf, unsigned int len, size_t recsize, unsigned int *n)
+                                    void *buf, unsigned int len, size_t recsize, unsigned int *n)
 {
     *n = __fifo_peek_n(fifo, recsize);
 
@@ -255,7 +255,7 @@ static unsigned int fifo_out_copy_r(struct __fifo *fifo,
 }
 
 unsigned int __fifo_out_peek_r(struct __fifo *fifo, void *buf,
-        unsigned int len, size_t recsize)
+                               unsigned int len, size_t recsize)
 {
     unsigned int n;
 
@@ -266,7 +266,7 @@ unsigned int __fifo_out_peek_r(struct __fifo *fifo, void *buf,
 }
 
 unsigned int __fifo_out_r(struct __fifo *fifo, void *buf,
-        unsigned int len, size_t recsize)
+                          unsigned int len, size_t recsize)
 {
     unsigned int n;
 

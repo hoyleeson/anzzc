@@ -1,6 +1,6 @@
 /*
  * include/netsock.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -26,9 +26,9 @@ extern "C" {
 
 /*socket connection type*/
 enum netsock_type {
-	NETSOCK_STREAM,		/* socket type is tcp */
-	NETSOCK_DGRAM,		/* socket type is udp */
-	NETSOCK_MAX,
+    NETSOCK_STREAM,		/* socket type is tcp */
+    NETSOCK_DGRAM,		/* socket type is udp */
+    NETSOCK_MAX,
 };
 
 /*connection session unit*/
@@ -42,38 +42,39 @@ struct connection {
 
 /*use for the error callback function*/
 enum err_code {
-	E_SOCKRECV,
-	E_SOCKSELECT,
-	E_SOCKTIMEOUT,
-	E_SOCKLISTEN,
-	E_SOCKCONNECT,
-	E_UNKNOWN,
+    E_SOCKRECV,
+    E_SOCKSELECT,
+    E_SOCKTIMEOUT,
+    E_SOCKLISTEN,
+    E_SOCKCONNECT,
+    E_UNKNOWN,
 };
 
 /*
- * when use the callback function get receive data, 
+ * when use the callback function get receive data,
 * the recv_callback() return this structure.
 */
 struct net_packet {
-	void* data;		//data buf
-	int datalen;	//data lenght
-	struct connection conn;		//Identification data is of who sent
+    void *data;		//data buf
+    int datalen;	//data lenght
+    struct connection conn;		//Identification data is of who sent
 };
 
-typedef int (*recv_callback)(struct net_packet* pack, void *priv);	//receive data callback
+typedef int (*recv_callback)(struct net_packet *pack,
+                             void *priv);	//receive data callback
 typedef void (*err_callback)(int err_code, void *priv);		//error callback.
 
 
 struct netsock_args {
     enum netsock_type type;	/*socket type, tcp or udp*/
-	uint32_t is_server;		//1:server;	0:client
-	uint32_t dest_ip;	//if client, this is server ip, otherwise into empty string
-	uint32_t dest_port;		//destination port
-	uint32_t listen_port;	//listen port
+    uint32_t is_server;		//1:server;	0:client
+    uint32_t dest_ip;	//if client, this is server ip, otherwise into empty string
+    uint32_t dest_port;		//destination port
+    uint32_t listen_port;	//listen port
 
-	uint32_t buf_size;	//receive buffer size.
-	recv_callback recv_cb;
-	err_callback err_cb;
+    uint32_t buf_size;	//receive buffer size.
+    recv_callback recv_cb;
+    err_callback err_cb;
     void *priv_data;
 };
 
@@ -100,24 +101,26 @@ struct netsock_args {
 * network library interface data structure.
 */
 struct netsock {
-	struct netsock_args args;
-	struct netsock_operations *netsock_ops;
-	void *private_data;
-	
-	pthread_mutex_t s_lock;
-	pthread_mutex_t r_lock;
+    struct netsock_args args;
+    struct netsock_operations *netsock_ops;
+    void *private_data;
+
+    pthread_mutex_t s_lock;
+    pthread_mutex_t r_lock;
 };
 
 /*
 * network library function interface.
 */
 struct netsock_operations {
-	int (*init)(struct netsock *nsock);
-	void (*release)(struct netsock *nsock);
-	int (*send)(struct netsock *nsock, void *buf, int len);
-	int (*send_by_session)(struct netsock *nsock, void *session, void *buf, int len);
-	int (*recv)(struct netsock *nsock, _out void *buf, int len);
-	int (*recv_timeout)(struct netsock *nsock, _out void *buf, int len, unsigned long timeout);
+    int (*init)(struct netsock *nsock);
+    void (*release)(struct netsock *nsock);
+    int (*send)(struct netsock *nsock, void *buf, int len);
+    int (*send_by_session)(struct netsock *nsock, void *session, void *buf,
+                           int len);
+    int (*recv)(struct netsock *nsock, _out void *buf, int len);
+    int (*recv_timeout)(struct netsock *nsock, _out void *buf, int len,
+                        unsigned long timeout);
 };
 
 
@@ -128,7 +131,7 @@ struct netsock_operations {
 *
 *return: indentify the handle to the library
 */
-void* netsock_init(struct netsock_args* args);
+void *netsock_init(struct netsock_args *args);
 
 
 /*
@@ -141,7 +144,7 @@ void* netsock_init(struct netsock_args* args);
 *
 *return: receive data len;<0: error.
 */
-int netsock_recv(void* handle, _out void* buf, int len);
+int netsock_recv(void *handle, _out void *buf, int len);
 
 /*
 *description:receive network data function.
@@ -154,7 +157,8 @@ int netsock_recv(void* handle, _out void* buf, int len);
 *
 *return: receive data len;=0:timeout;<0: error.
 */
-int netsock_recv_timeout(void* handle, _out void* buf, int len, unsigned long timeout);
+int netsock_recv_timeout(void *handle, _out void *buf, int len,
+                         unsigned long timeout);
 
 
 /*
@@ -167,7 +171,7 @@ int netsock_recv_timeout(void* handle, _out void* buf, int len, unsigned long ti
 *
 *return: 0:send data success, -1: send data error.
 */
-int netsock_send(void* handle, void* buf, int len);
+int netsock_send(void *handle, void *buf, int len);
 
 /*
 *description:reinitialize the resource function.
@@ -177,7 +181,7 @@ int netsock_send(void* handle, void* buf, int len);
 *
 *return:int
 */
-int netsock_reinit(void* handle, struct netsock_args* args);
+int netsock_reinit(void *handle, struct netsock_args *args);
 
 /*
 *description:release the resource function.
@@ -187,7 +191,7 @@ int netsock_reinit(void* handle, struct netsock_args* args);
 *
 *return:void
 */
-void netsock_release(void* handle);
+void netsock_release(void *handle);
 
 
 extern struct netsock_operations stream_ops;

@@ -1,6 +1,6 @@
 /*
  * include/iowait.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -24,7 +24,7 @@
 
 
 typedef struct iowait_watcher {
-	/* in param */
+    /* in param */
     int type;
     int seq;
     int count;
@@ -58,19 +58,20 @@ extern "C" {
 
 
 int iowait_init(iowait_t *wait);
-void iowait_watcher_init(iowait_watcher_t *watcher, 
-		int type, int seq, void *result, int count);
+void iowait_watcher_init(iowait_watcher_t *watcher,
+                         int type, int seq, void *result, int count);
 int iowait_register_watcher(iowait_t *wait, iowait_watcher_t *watcher);
 
 int wait_for_response_data(iowait_t *wait, iowait_watcher_t *watcher, int *res);
 int wait_for_response(iowait_t *wait, iowait_watcher_t *watcher);
 
-int post_response_data(iowait_t *wait, int type, int seq, void *result, int count);
+int post_response_data(iowait_t *wait, int type, int seq, void *result,
+                       int count);
 int post_response(iowait_t *wait, int type, int seq, void *result,
-        void (*fn)(void *dst, void *src));
+                  void (*fn)(void *dst, void *src));
 
 
-static inline void default_assign(void * dst, void *src, int size)
+static inline void default_assign(void *dst, void *src, int size)
 {
     memcpy(dst, src, size);
 }

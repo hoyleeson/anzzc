@@ -1,6 +1,6 @@
 /*
  * include/utils.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -22,15 +22,15 @@
 extern "C" {
 #endif
 
-void* xalloc(size_t   sz);
-void* xzalloc(size_t  sz);
-void* xrealloc(void*  block, size_t  size);
+void *xalloc(size_t   sz);
+void *xzalloc(size_t  sz);
+void *xrealloc(void  *block, size_t  size);
 
 int hexdigit( int  c );
-int hex2int(const uint8_t*  data, int  len);
-void int2hex(int  value, uint8_t*  to, int  width);
-int xread(int  fd, void*  to, int  len);
-int xwrite(int  fd, const void*  from, int  len);
+int hex2int(const uint8_t  *data, int  len);
+void int2hex(int  value, uint8_t  *to, int  width);
+int xread(int  fd, void  *to, int  len);
+int xwrite(int  fd, const void  *from, int  len);
 void setnonblock(int  fd);
 int xaccept(int  fd);
 

@@ -1,6 +1,6 @@
 /*
  * include/bug.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -20,7 +20,7 @@
     panic("BUG!"); \
 } while (0)
 
-#define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while (0) 
+#define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while (0)
 
 #define BUILD_BUG_ON(condition)					\
     do {							\
@@ -55,6 +55,6 @@
 #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
 #define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
 
-#define static_assert(expr) do { int _array[(expr) ? 1 : -1]; (void) _array[0]; } while (0) 
+#define static_assert(expr) do { int _array[(expr) ? 1 : -1]; (void) _array[0]; } while (0)
 
 #endif

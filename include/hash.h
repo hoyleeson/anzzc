@@ -1,6 +1,6 @@
 /*
  * include/hash.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -45,38 +45,38 @@
 
 static inline u64 hash_64(u64 val, unsigned int bits)
 {
-	u64 hash = val;
+    u64 hash = val;
 
-	/*  Sigh, gcc can't optimise this alone like it does for 32 bits. */
-	u64 n = hash;
-	n <<= 18;
-	hash -= n;
-	n <<= 33;
-	hash -= n;
-	n <<= 3;
-	hash += n;
-	n <<= 3;
-	hash -= n;
-	n <<= 4;
-	hash += n;
-	n <<= 2;
-	hash += n;
+    /*  Sigh, gcc can't optimise this alone like it does for 32 bits. */
+    u64 n = hash;
+    n <<= 18;
+    hash -= n;
+    n <<= 33;
+    hash -= n;
+    n <<= 3;
+    hash += n;
+    n <<= 3;
+    hash -= n;
+    n <<= 4;
+    hash += n;
+    n <<= 2;
+    hash += n;
 
-	/* High bits are more random, so use them. */
-	return hash >> (64 - bits);
+    /* High bits are more random, so use them. */
+    return hash >> (64 - bits);
 }
 
 static inline u32 hash_32(u32 val, unsigned int bits)
 {
-	/* On some cpus multiply is faster, on others gcc will do shifts */
-	u32 hash = val * GOLDEN_RATIO_PRIME_32;
+    /* On some cpus multiply is faster, on others gcc will do shifts */
+    u32 hash = val * GOLDEN_RATIO_PRIME_32;
 
-	/* High bits are more random, so use them. */
-	return hash >> (32 - bits);
+    /* High bits are more random, so use them. */
+    return hash >> (32 - bits);
 }
 
 static inline unsigned long hash_ptr(const void *ptr, unsigned int bits)
 {
-	return hash_long((unsigned long)ptr, bits);
+    return hash_long((unsigned long)ptr, bits);
 }
 #endif /* _ANZZC_HASH_H */

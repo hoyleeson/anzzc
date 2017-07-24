@@ -1,6 +1,6 @@
 /*
  * include/args.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -23,36 +23,36 @@ extern "C" {
 
 
 enum args_error_type {
-  ARGS_ERROR_OK,
-  ARGS_ERROR_UKNOWN_OPT,
-  ARGS_ERROR_TOO_MANY,
-  ARGS_ERROR_REQUIRED_INTEGER_ARG,
-  ARGS_ERROR_REQUIRED_STRING_ARG,
-  ARGS_ERROR_UNEXPECTED_ARG,
+    ARGS_ERROR_OK,
+    ARGS_ERROR_UKNOWN_OPT,
+    ARGS_ERROR_TOO_MANY,
+    ARGS_ERROR_REQUIRED_INTEGER_ARG,
+    ARGS_ERROR_REQUIRED_STRING_ARG,
+    ARGS_ERROR_UNEXPECTED_ARG,
 };
 
 
 enum args_option_type {
-  // special
-  ARGS_OPT_END,
-  ARGS_OPT_GROUP,
-  // options with no arguments
-  ARGS_OPT_BOOLEAN,
-  // options with arguments (optional or required)
-  ARGS_OPT_INTEGER,
-  ARGS_OPT_STRING,
+    // special
+    ARGS_OPT_END,
+    ARGS_OPT_GROUP,
+    // options with no arguments
+    ARGS_OPT_BOOLEAN,
+    // options with arguments (optional or required)
+    ARGS_OPT_INTEGER,
+    ARGS_OPT_STRING,
 };
 
 
 typedef struct _args_option {
-  int type;
-  const char short_name;
-  const char *long_name;
-  void *value;
-  int max_count;
-  const char *help;
-  const char *type_help;
-  int count;
+    int type;
+    const char short_name;
+    const char *long_name;
+    void *value;
+    int max_count;
+    const char *help;
+    const char *type_help;
+    int count;
 } args_option_t;
 
 

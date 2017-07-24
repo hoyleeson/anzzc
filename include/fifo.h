@@ -62,11 +62,11 @@ extern "C" {
  */
 
 struct __fifo {
-	unsigned int	in;
-	unsigned int	out;
-	unsigned int	mask;
-	unsigned int	esize;
-	void		*data;
+    unsigned int	in;
+    unsigned int	out;
+    unsigned int	mask;
+    unsigned int	esize;
+    void		*data;
 };
 
 #define __STRUCT_FIFO_COMMON(datatype, recsize, ptrtype) \
@@ -182,13 +182,13 @@ struct fifo_rec_ptr_2 __STRUCT_FIFO_PTR(unsigned char, 2, void);
 static inline unsigned int __must_check
 __fifo_uint_must_check_helper(unsigned int val)
 {
-	return val;
+    return val;
 }
 
 static inline int __must_check
 __fifo_int_must_check_helper(int val)
 {
-	return val;
+    return val;
 }
 
 /**
@@ -638,29 +638,29 @@ extern int __fifo_alloc(struct __fifo *fifo, unsigned int size, size_t esize);
 extern void __fifo_free(struct __fifo *fifo);
 
 extern int __fifo_init(struct __fifo *fifo, void *buffer,
-	unsigned int size, size_t esize);
+                       unsigned int size, size_t esize);
 
 extern unsigned int __fifo_in(struct __fifo *fifo,
-	const void *buf, unsigned int len);
+                              const void *buf, unsigned int len);
 
 extern unsigned int __fifo_out(struct __fifo *fifo,
-	void *buf, unsigned int len);
+                               void *buf, unsigned int len);
 
 extern unsigned int __fifo_out_peek(struct __fifo *fifo,
-	void *buf, unsigned int len);
+                                    void *buf, unsigned int len);
 
 extern unsigned int __fifo_in_r(struct __fifo *fifo,
-	const void *buf, unsigned int len, size_t recsize);
+                                const void *buf, unsigned int len, size_t recsize);
 
 extern unsigned int __fifo_out_r(struct __fifo *fifo,
-	void *buf, unsigned int len, size_t recsize);
+                                 void *buf, unsigned int len, size_t recsize);
 
 extern unsigned int __fifo_len_r(struct __fifo *fifo, size_t recsize);
 
 extern void __fifo_skip_r(struct __fifo *fifo, size_t recsize);
 
 extern unsigned int __fifo_out_peek_r(struct __fifo *fifo,
-	void *buf, unsigned int len, size_t recsize);
+                                      void *buf, unsigned int len, size_t recsize);
 
 extern unsigned int __fifo_max_r(unsigned int len, size_t recsize);
 

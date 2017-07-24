@@ -34,7 +34,7 @@
  */
 
 void *bsearch(const void *key, const void *base, size_t num, size_t size,
-        int (*cmp)(const void *key, const void *elt))
+              int (*cmp)(const void *key, const void *elt))
 {
     size_t start = 0, end = num;
     int result;
@@ -55,8 +55,9 @@ void *bsearch(const void *key, const void *base, size_t num, size_t size,
 }
 
 
-void *bsearch_edge(const void *key, const void *base, size_t num, size_t size, int edge,
-        int (*cmp)(const void *key, const void *elt))
+void *bsearch_edge(const void *key, const void *base, size_t num, size_t size,
+                   int edge,
+                   int (*cmp)(const void *key, const void *elt))
 {
     size_t start = 0, end = num;
     int result = 0;
@@ -73,9 +74,9 @@ void *bsearch_edge(const void *key, const void *base, size_t num, size_t size, i
             return (void *)base + mid * size;
     }
 
-    if(result < 0 && edge == BSEARCH_MATCH_UP) 
+    if (result < 0 && edge == BSEARCH_MATCH_UP)
         start += 1;
-    else if(result > 0 && edge == BSEARCH_MATCH_DOWN)
+    else if (result > 0 && edge == BSEARCH_MATCH_DOWN)
         start -= 1;
 
     return (void *)base + start * size;

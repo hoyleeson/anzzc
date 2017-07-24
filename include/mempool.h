@@ -1,6 +1,6 @@
 /*
  * include/mempool.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -37,13 +37,13 @@ void mempool_free(mempool_t *pool, void *buf);
 
 
 struct mem_head {
-	int access;
-	int size;
+    int access;
+    int size;
 };
 
 struct mem_item {
-	struct mem_head head;
-	uint8_t data[0];
+    struct mem_head head;
+    uint8_t data[0];
 };
 
 #define IS_LIMIT 	(0)
@@ -55,13 +55,13 @@ int mem_cache_init(void);
 void *__mm_alloc(int size, int node);
 void __mm_free(void *ptr, int node);
 
-static __always_inline void *mm_alloc(int size) 
+static __always_inline void *mm_alloc(int size)
 {
-	int i = 0;
-	if (__builtin_constant_p(size)) {
+    int i = 0;
+    if (__builtin_constant_p(size)) {
 
-		if (!size)
-			return NULL;
+        if (!size)
+            return NULL;
 
 #define CACHE(x, n) \
 		if (size <= x) \
@@ -71,18 +71,18 @@ static __always_inline void *mm_alloc(int size)
 #include "memsizes.h"
 #undef CACHE
 
-		return malloc(size);
-	} else {
-		i = -1;
-	}
+        return malloc(size);
+    } else {
+        i = -1;
+    }
 
 found:
-	return __mm_alloc(size, i);
+    return __mm_alloc(size, i);
 }
 
-static inline void mm_free(void *ptr) 
+static inline void mm_free(void *ptr)
 {
-	return __mm_free(ptr, -1);
+    return __mm_free(ptr, -1);
 }
 
 #ifdef __cplusplus

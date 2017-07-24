@@ -1,6 +1,6 @@
 /*
  * include/cmds.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -39,7 +39,7 @@ typedef struct cmd_tbl_s cmd_tbl_t;
 void register_cmd(cmd_tbl_t *cmdp);
 void unregister_cmd(cmd_tbl_t *cmdp);
 
-int execute_cmds(int argc, char** argv);
+int execute_cmds(int argc, char **argv);
 
 #ifdef __cplusplus
 }

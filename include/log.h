@@ -1,6 +1,6 @@
 /*
  * include/log.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -30,22 +30,22 @@ extern "C" {
 #define DEFAULT_LOG_MODE 		LOG_MODE_STDOUT
 
 enum logger_mode {
-	LOG_MODE_QUIET = 0,
-	LOG_MODE_STDOUT,
-	LOG_MODE_FILE,
-	LOG_MODE_CLOUD,
-	LOG_MODE_CALLBACK, 
-	LOG_MODE_MAX,
+    LOG_MODE_QUIET = 0,
+    LOG_MODE_STDOUT,
+    LOG_MODE_FILE,
+    LOG_MODE_CLOUD,
+    LOG_MODE_CALLBACK,
+    LOG_MODE_MAX,
 };
 
 enum logger_level {
-	LOG_FATAL = 0,
-	LOG_ERROR,
-	LOG_WARNING,
-	LOG_INFO,
-	LOG_DEBUG,
-	LOG_VERBOSE,
-	LOG_LEVEL_MAX,
+    LOG_FATAL = 0,
+    LOG_ERROR,
+    LOG_WARNING,
+    LOG_INFO,
+    LOG_DEBUG,
+    LOG_VERBOSE,
+    LOG_LEVEL_MAX,
 };
 
 #define LOG_DEFAULT_LEVEL 	LOG_INFO
@@ -79,7 +79,8 @@ void log_set_rotate_limit(int len);
 /* only use for LOG_MODE_CALLBACK mode */
 void log_set_callback(void (*cb)(int, const char *));
 
-void log_print(int level, const char *tag, const char* func, int line, const char *fmt, ...);
+void log_print(int level, const char *tag, const char *func, int line,
+               const char *fmt, ...);
 int log_init(enum logger_mode mode, enum logger_level level);
 void log_release(void);
 
@@ -87,14 +88,14 @@ void log_release(void);
 #ifdef VDEBUG
 #define logv(...) 		LOGV(__VA_ARGS__)
 
-static inline void dump_data(const char *desc, void *data, int len) 
+static inline void dump_data(const char *desc, void *data, int len)
 {
     int i;
     uint8_t *p = (uint8_t *)data;
 
     logprint("[%s]dump data(%d):\n", desc, len);
-    for(i=0; i<len; i++) {
-        if((i % 16) == 0)
+    for (i = 0; i < len; i++) {
+        if ((i % 16) == 0)
             logprint("\n");
         logprint("%02x ", *(p + i));
     }
@@ -109,7 +110,7 @@ static inline void dump_data(const char *desc, void *data, int len)
 #else
 #define logv(...)
 
-static inline void dump_data(const char *desc, void *data, int len) 
+static inline void dump_data(const char *desc, void *data, int len)
 {
 }
 

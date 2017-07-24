@@ -1,6 +1,6 @@
 /*
  * src/pack_head.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -19,8 +19,8 @@
 pack_head_t *create_pack(uint8_t type, uint32_t len)
 {
     pack_head_t *pack;
-    pack = (pack_head_t *)malloc(sizeof(*pack) + len);	
-    if(!pack)
+    pack = (pack_head_t *)malloc(sizeof(*pack) + len);
+    if (!pack)
         return NULL;
 
     pack->magic = PROTOS_MAGIC;

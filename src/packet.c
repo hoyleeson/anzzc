@@ -1,6 +1,6 @@
 /*
  * src/packet.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -42,22 +42,22 @@ pack_buf_t *pack_buf_alloc(pack_buf_pool_t *pool)
     pkb = mempool_alloc(pool->pool);
 
     pkb->owner = pool;
-    fake_atomic_init(&pkb->refcount, 1); 
+    fake_atomic_init(&pkb->refcount, 1);
 
     return pkb;
 }
 
 pack_buf_t *pack_buf_get(pack_buf_t *pkb)
 {
-    fake_atomic_inc(&pkb->refcount); 
+    fake_atomic_inc(&pkb->refcount);
     return pkb;
 }
 
 void pack_buf_free(pack_buf_t *pkb)
 {
-    if(fake_atomic_dec_and_test(&pkb->refcount)) {
+    if (fake_atomic_dec_and_test(&pkb->refcount)) {
         pack_buf_pool_t *pool = pkb->owner;
-        mempool_free(pool->pool, pkb); 
+        mempool_free(pool->pool, pkb);
     }
 }
 

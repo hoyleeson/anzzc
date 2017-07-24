@@ -1,6 +1,6 @@
 /*
  * src/notifier.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -22,7 +22,7 @@
  */
 
 static int __notifier_chain_register(struct notifier_block **nl,
-        struct notifier_block *n)
+                                     struct notifier_block *n)
 {
     while ((*nl) != NULL) {
         if (n->priority > (*nl)->priority)
@@ -50,7 +50,7 @@ static int __notifier_chain_cond_register(struct notifier_block **nl,
 }
 
 static int __notifier_chain_unregister(struct notifier_block **nl,
-        struct notifier_block *n)
+                                       struct notifier_block *n)
 {
     while ((*nl) != NULL) {
         if ((*nl) == n) {
@@ -75,8 +75,8 @@ static int __notifier_chain_unregister(struct notifier_block **nl,
  *			last notifier function called.
  */
 static int __notifier_call_chain(struct notifier_block **nl,
-        unsigned long val, void *v,
-        int nr_to_call,	int *nr_calls)
+                                 unsigned long val, void *v,
+                                 int nr_to_call,	int *nr_calls)
 {
     int ret = NOTIFY_DONE;
     struct notifier_block *nb, *next_nb;
@@ -112,7 +112,8 @@ int notifier_chain_register(struct notifier_head *nh, struct notifier_block *n)
     return ret;
 }
 
-int notifier_chain_cond_register(struct notifier_head *nh, struct notifier_block *n)
+int notifier_chain_cond_register(struct notifier_head *nh,
+                                 struct notifier_block *n)
 {
     int ret;
 
@@ -122,7 +123,8 @@ int notifier_chain_cond_register(struct notifier_head *nh, struct notifier_block
     return ret;
 }
 
-int notifier_chain_unregister(struct notifier_head *nh, struct notifier_block *n)
+int notifier_chain_unregister(struct notifier_head *nh,
+                              struct notifier_block *n)
 {
     int ret;
 
@@ -134,7 +136,7 @@ int notifier_chain_unregister(struct notifier_head *nh, struct notifier_block *n
 
 
 int notifier_call_chain_nr(struct notifier_head *nh, unsigned long val, void *v,
-        int nr_to_call, int *nr_calls)
+                           int nr_to_call, int *nr_calls)
 {
     int ret;
 

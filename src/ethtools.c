@@ -1,6 +1,6 @@
 /*
  * src/ethtools.c
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <linux/sockios.h>
 #include <arpa/inet.h>
-#include <netinet/in.h> 
+#include <netinet/in.h>
 #include <net/if_arp.h>
 
 #include <include/log.h>
@@ -31,7 +31,7 @@
 
 #define DEFAULT_ETH     "eth0"
 
-int get_ipaddr(const char* eth, char* ipaddr)
+int get_ipaddr(const char *eth, char *ipaddr)
 {
     int i = 0;
     int sockfd;
@@ -40,24 +40,25 @@ int get_ipaddr(const char* eth, char* ipaddr)
     struct ifreq *ifreq;
     char *dev = (char *)eth;
 
-    if(!dev) {
+    if (!dev) {
         dev = DEFAULT_ETH;
     }
 
     ifconf.ifc_len = 512;
     ifconf.ifc_buf = buf;
 
-    if((sockfd = socket(AF_INET, SOCK_DGRAM, 0))<0) {
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket");
         exit(1);
     }
 
     ioctl(sockfd, SIOCGIFCONF, &ifconf);
-    ifreq = (struct ifreq*)buf;
+    ifreq = (struct ifreq *)buf;
 
-    for(i=(ifconf.ifc_len/sizeof(struct ifreq)); i>0; i--) {
-        if(strcmp(ifreq->ifr_name, dev)==0) {
-            strcpy(ipaddr, inet_ntoa(((struct sockaddr_in*)&(ifreq->ifr_addr))->sin_addr));
+    for (i = (ifconf.ifc_len / sizeof(struct ifreq)); i > 0; i--) {
+        if (strcmp(ifreq->ifr_name, dev) == 0) {
+            strcpy(ipaddr, inet_ntoa(((struct sockaddr_in *) &
+                                      (ifreq->ifr_addr))->sin_addr));
             return 0;
         }
 
@@ -74,9 +75,9 @@ int detect_mii(int skfd, const char *ifname)
     /* Get the vitals from the interface. */
     strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
     if (ioctl(skfd, SIOCGMIIPHY, &ifr) < 0) {
-		loge("SIOCGMIIPHY on %s failed: %s\n", ifname, strerror(errno));
-		(void) close(skfd);
-		return 2;
+        loge("SIOCGMIIPHY on %s failed: %s\n", ifname, strerror(errno));
+        (void) close(skfd);
+        return 2;
     }
 
     data = (unsigned short *)(&ifr.ifr_data);
@@ -90,7 +91,7 @@ int detect_mii(int skfd, const char *ifname)
 
     mii_val = data[3];
 
-    return(((mii_val & 0x0016) == 0x0004) ? 0 : 1);
+    return (((mii_val & 0x0016) == 0x0004) ? 0 : 1);
 }
 
 /*
@@ -103,8 +104,8 @@ int detect_ethtool(int skfd, const char *ifname)
 
     memset(&ifr, 0, sizeof(ifr));
     edata.cmd = ETHTOOL_GLINK;
-  	edata.data = 0;
-    strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
+    edata.data = 0;
+    strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
     ifr.ifr_data = (char *) &edata;
 
     if (ioctl(skfd, SIOCETHTOOL, &ifr) == -1) {
@@ -116,26 +117,26 @@ int detect_ethtool(int skfd, const char *ifname)
 }
 
 
-int detect_eth_status(const char * ifname)
-{  
-	int skfd = -1;
-	int retval;
+int detect_eth_status(const char *ifname)
+{
+    int skfd = -1;
+    int retval;
 
     /* Open a socket. */
-	if (( skfd = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) {
-		loge("socket error\n"); //and return -1
-		return -1;
-	}
+    if (( skfd = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) {
+        loge("socket error\n"); //and return -1
+        return -1;
+    }
 
-	retval = detect_ethtool(skfd, ifname); //check interface link
+    retval = detect_ethtool(skfd, ifname); //check interface link
 
     /* interface link error */
-	if (retval == 2) {
-		retval = detect_mii(skfd, ifname);//check interface link
-	}
+    if (retval == 2) {
+        retval = detect_mii(skfd, ifname);//check interface link
+    }
 
-	close(skfd);  // get the retval and close the socket 
-	return retval;
+    close(skfd);  // get the retval and close the socket
+    return retval;
 }
 
 
@@ -146,9 +147,9 @@ int detect_eth_status(const char * ifname)
 *
 *return:ipaddr.
 */
-uint32_t str_to_ipaddr(const char* ipaddr)
+uint32_t str_to_ipaddr(const char *ipaddr)
 {
-	return inet_addr(ipaddr);
+    return inet_addr(ipaddr);
 }
 
 /*
@@ -156,10 +157,10 @@ uint32_t str_to_ipaddr(const char* ipaddr)
 * arg1: out param, local ip buffer.
 * ret: local ip buffer.
 */
-char* get_local_ip(_out char* ipaddr)
+char *get_local_ip(_out char *ipaddr)
 {
-	get_ipaddr(DEFAULT_ETH, ipaddr);
-	return ipaddr;
+    get_ipaddr(DEFAULT_ETH, ipaddr);
+    return ipaddr;
 }
 
 /*
@@ -170,36 +171,33 @@ char* get_local_ip(_out char* ipaddr)
 */
 static int wait_eth_up_timeout(const char *ifname, int seconds)
 {
-	int i_tmp = 0;
-	int eth_state = -1;
-	logi("wait for network start.\n");
-	while(1)
-	{
-		eth_state = detect_eth_status(ifname);
-		if(eth_state == 0)
-		{
-			break;
-		}
+    int i_tmp = 0;
+    int eth_state = -1;
+    logi("wait for network start.\n");
+    while (1) {
+        eth_state = detect_eth_status(ifname);
+        if (eth_state == 0) {
+            break;
+        }
 
-		if(seconds && i_tmp++ == seconds)
-		{
-			return -1;
-		}		
-		usleep(1000*1000);
-	}
-	logi("network normal starting.\n");
-	return 0;
+        if (seconds && i_tmp++ == seconds) {
+            return -1;
+        }
+        usleep(1000 * 1000);
+    }
+    logi("network normal starting.\n");
+    return 0;
 }
 
 
 /*
 * wait until the network is ready.
-* 
+*
 *ret:-1:timeout;0:success
 */
 int wait_for_network_ready(void)
 {
-	return wait_eth_up_timeout(DEFAULT_ETH, 0);
+    return wait_eth_up_timeout(DEFAULT_ETH, 0);
 }
 /*
 *wait the network is ready.
@@ -208,7 +206,7 @@ int wait_for_network_ready(void)
 */
 int wait_for_network_ready_timeout(int seconds)
 {
-	return wait_eth_up_timeout(DEFAULT_ETH, seconds);
+    return wait_eth_up_timeout(DEFAULT_ETH, seconds);
 }
 
 

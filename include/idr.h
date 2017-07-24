@@ -1,6 +1,6 @@
 /*
  * include/idr.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -38,22 +38,22 @@ extern "C" {
 #define IDR_MASK ((1 << IDR_BITS)-1)
 
 struct idr_layer {
-	int			prefix;	/* the ID prefix of this idr_layer */
-	int			layer;	/* distance from leaf */
-	struct idr_layer *ary[1<<IDR_BITS];
-	int			count;	/* When zero, we can release it */
+    int			prefix;	/* the ID prefix of this idr_layer */
+    int			layer;	/* distance from leaf */
+    struct idr_layer *ary[1 << IDR_BITS];
+    int			count;	/* When zero, we can release it */
 
     DECLARE_BITMAP(bitmap, IDR_SIZE);
 };
 
 struct idr {
-	struct idr_layer *hint;	/* the last layer allocated from */
-	struct idr_layer *top;
-	int			layers;	/* only valid w/o concurrent changes */
-	int			cur;	/* current pos for cyclic allocation */
-	pthread_mutex_t lock;
-	int			id_free_cnt;
-	struct idr_layer	*id_free;
+    struct idr_layer *hint;	/* the last layer allocated from */
+    struct idr_layer *top;
+    int			layers;	/* only valid w/o concurrent changes */
+    int			cur;	/* current pos for cyclic allocation */
+    pthread_mutex_t lock;
+    int			id_free_cnt;
+    struct idr_layer	*id_free;
 };
 
 #define IDR_INIT(name)							\
@@ -105,7 +105,7 @@ void idr_preload(void);
 int idr_alloc(struct idr *idp, void *ptr, int start, int end);
 int idr_alloc_cyclic(struct idr *idr, void *ptr, int start, int end);
 int idr_for_each(struct idr *idp,
-		 int (*fn)(int id, void *p, void *data), void *data);
+                 int (*fn)(int id, void *p, void *data), void *data);
 void *idr_get_next(struct idr *idp, int *nextid);
 void *idr_replace(struct idr *idp, void *ptr, int id);
 void idr_remove(struct idr *idp, int id);
@@ -137,12 +137,12 @@ static inline void idr_preload_end(void)
  */
 static inline void *idr_find(struct idr *idr, int id)
 {
-	struct idr_layer *hint = idr_dereference_raw(idr->hint);
+    struct idr_layer *hint = idr_dereference_raw(idr->hint);
 
-	if (hint && (id & ~IDR_MASK) == hint->prefix)
-		return idr_dereference_raw(hint->ary[id & IDR_MASK]);
+    if (hint && (id & ~IDR_MASK) == hint->prefix)
+        return idr_dereference_raw(hint->ary[id & IDR_MASK]);
 
-	return idr_find_slowpath(idr, id);
+    return idr_find_slowpath(idr, id);
 }
 
 /**
@@ -170,13 +170,13 @@ static inline void *idr_find(struct idr *idr, int id)
 #define IDA_BITMAP_BITS 	(IDA_BITMAP_LONGS * sizeof(long) * 8)
 
 struct ida_bitmap {
-	long			nr_busy;
-	unsigned long		bitmap[IDA_BITMAP_LONGS];
+    long			nr_busy;
+    unsigned long		bitmap[IDA_BITMAP_LONGS];
 };
 
 struct ida {
-	struct idr		idr;
-	struct ida_bitmap	*free_bitmap;
+    struct idr		idr;
+    struct ida_bitmap	*free_bitmap;
 };
 
 #define IDA_INIT(name)		{ .idr = IDR_INIT((name).idr), .free_bitmap = NULL, }
@@ -200,7 +200,7 @@ void ida_simple_remove(struct ida *ida, unsigned int id);
  */
 static inline int ida_get_new(struct ida *ida, int *p_id)
 {
-	return ida_get_new_above(ida, 0, p_id);
+    return ida_get_new_above(ida, 0, p_id);
 }
 
 void idr_init_cache(void);

@@ -1,6 +1,6 @@
 /*
  * include/fake_atomic.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -293,12 +293,12 @@ static inline long fake_atomic_long_sub_return(long i, fake_atomic_long_t *v)
  */
 static inline void fake_set_bit(int nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
     pthread_mutex_t *lock = (pthread_mutex_t *)addr;
 
     pthread_mutex_lock(lock);
-	*p  |= mask;
+    *p  |= mask;
     pthread_mutex_unlock(lock);
 }
 
@@ -314,12 +314,12 @@ static inline void fake_set_bit(int nr, unsigned long *addr)
  */
 static inline void fake_clear_bit(int nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
     pthread_mutex_t *lock = (pthread_mutex_t *)addr;
 
     pthread_mutex_lock(lock);
-	*p &= ~mask;
+    *p &= ~mask;
     pthread_mutex_unlock(lock);
 }
 
@@ -335,12 +335,12 @@ static inline void fake_clear_bit(int nr, unsigned long *addr)
  */
 static inline void fake_change_bit(int nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
     pthread_mutex_t *lock = (pthread_mutex_t *)addr;
 
     pthread_mutex_lock(lock);
-	*p ^= mask;
+    *p ^= mask;
     pthread_mutex_unlock(lock);
 }
 
@@ -355,17 +355,17 @@ static inline void fake_change_bit(int nr, unsigned long *addr)
  */
 static inline int fake_test_and_set_bit(int nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
-	unsigned long old;
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
+    unsigned long old;
     pthread_mutex_t *lock = (pthread_mutex_t *)addr;
 
     pthread_mutex_lock(lock);
-	old = *p;
-	*p = old | mask;
+    old = *p;
+    *p = old | mask;
     pthread_mutex_unlock(lock);
 
-	return (old & mask) != 0;
+    return (old & mask) != 0;
 }
 
 /**
@@ -379,17 +379,17 @@ static inline int fake_test_and_set_bit(int nr, unsigned long *addr)
  */
 static inline int fake_test_and_clear_bit(int nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
-	unsigned long old;
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
+    unsigned long old;
     pthread_mutex_t *lock = (pthread_mutex_t *)addr;
 
     pthread_mutex_lock(lock);
-	old = *p;
-	*p = old & ~mask;
+    old = *p;
+    *p = old & ~mask;
     pthread_mutex_unlock(lock);
 
-	return (old & mask) != 0;
+    return (old & mask) != 0;
 }
 
 /**
@@ -402,17 +402,17 @@ static inline int fake_test_and_clear_bit(int nr, unsigned long *addr)
  */
 static inline int fake_test_and_change_bit(int nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
-	unsigned long old;
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = ((unsigned long *)counter_entry(addr)) + BIT_WORD(nr);
+    unsigned long old;
     pthread_mutex_t *lock = (pthread_mutex_t *)addr;
 
     pthread_mutex_lock(lock);
-	old = *p;
-	*p = old ^ mask;
+    old = *p;
+    *p = old ^ mask;
     pthread_mutex_unlock(lock);
 
-	return (old & mask) != 0;
+    return (old & mask) != 0;
 }
 
 #endif

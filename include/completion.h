@@ -1,6 +1,6 @@
 /*
  * include/completion.h
- * 
+ *
  * 2016-01-01  written by Hoyleeson <hoyleeson@gmail.com>
  *	Copyright (C) 2015-2016 by Hoyleeson.
  *
@@ -37,9 +37,9 @@ extern "C" {
  * INIT_COMPLETION().
  */
 struct completion {
-	unsigned int done;
-	pthread_mutex_t lock;
-	pthread_cond_t cond;
+    unsigned int done;
+    pthread_mutex_t lock;
+    pthread_cond_t cond;
 };
 
 #define COMPLETION_INITIALIZER(work) { 	\
@@ -70,14 +70,14 @@ struct completion {
  */
 static inline void init_completion(struct completion *x)
 {
-	x->done = 0;
-	pthread_mutex_init(&x->lock, NULL);
-	pthread_cond_init(&x->cond, NULL);
+    x->done = 0;
+    pthread_mutex_init(&x->lock, NULL);
+    pthread_cond_init(&x->cond, NULL);
 }
 
 extern void wait_for_completion(struct completion *);
 extern unsigned long wait_for_completion_timeout(struct completion *x,
-						   unsigned long timeout);
+        unsigned long timeout);
 
 extern bool try_wait_for_completion(struct completion *x);
 extern bool completion_done(struct completion *x);
