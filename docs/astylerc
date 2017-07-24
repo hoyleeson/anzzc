@@ -1,0 +1,37 @@
+#astyle config. reference from http://astyle.sourceforge.net/astyle.html
+
+
+# File Type.  C type files are C, C++, C++/CLI, and Objective-C
+--mode=c
+
+#Brace Style Options. Linux style uses linux braces
+--style=linux
+
+#Tab Options. using 4 spaces per indent
+--indent=spaces=4
+
+#Do not retain a backup of the original file. The original file is purged after it is formatted
+--suffix=none
+
+#Force use of the specified line end style
+--lineend=linux
+
+#Indent 'switch' blocks so that the 'case X:' statements are indented in the switch block.
+--indent-switches
+
+#Insert space padding around operators. This will also pad commas
+--pad-oper
+
+#Insert space padding between a header (e.g. 'if', 'for', 'while'...) and the following paren
+--pad-header
+
+#The option max-code-length will break a line if the code exceeds 80 characters
+--max-code-length=80
+
+--break-after-logical
+
+# no minimal indent. The lines will be aligned with the paren on the preceding line
+--min-conditional-indent=0
+
+#Attach a pointer or reference operator (*, &, or ^) to either the variable type (left) or variable name (right), or place it between the type and name (middle)
+--align-pointer=name
