@@ -15,8 +15,17 @@
 
 #include <sys/types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void sort(void *base, size_t num, size_t size,
 	  int (*cmp)(const void *, const void *),
 	  void (*swap)(void *, void *, int));
 
+#ifdef __cplusplus
+}
 #endif
+
+
+#endif /* _ANZZC_SORT_H */
